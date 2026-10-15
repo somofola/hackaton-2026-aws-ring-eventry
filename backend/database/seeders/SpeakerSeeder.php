@@ -1,8 +1,11 @@
 <?php
 namespace Database\Seeders;
 
-use App\Models\Speaker;
+use App\Models\EventSpeaker;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class SpeakerSeeder extends Seeder
 {
@@ -48,7 +51,23 @@ class SpeakerSeeder extends Seeder
         ];
 
         foreach ($speakers as $speaker) {
-            Speaker::create($speaker);
+            $user = User::create([
+                'name' => $speaker['name'],
+                'email' => 'speaker_' . Str::uuid() . '@eventry.internal',
+                'password' => Hash::make(Str::random(24)),
+                'role' => 'speaker',
+                'description' => $speaker['bio'],
+                'profile_image_url' => $speaker['image_url'],
+                'email_verified_at' => now(),
+            ]);
+
+            EventSpeaker::create([
+                'event_id' => $speaker['event_id'],
+                'user_id' => $user->id,
+                'title' => $speaker['title'],
+                'company' => $speaker['company'],
+                'social' => $speaker['social'],
+            ]);
         }
     }
 }
