@@ -9,6 +9,7 @@ import { ImageUploadCrop } from "@/components/ui/image-upload-crop";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import api from "@/services/api";
+import { invalidateProfile } from "@/hooks/useUserProfile";
 import SupportChat from "@/components/support/SupportChat";
 import DeleteAccountSection from "@/components/settings/DeleteAccountSection";
 
@@ -213,6 +214,8 @@ const AdminSettings = () => {
         setOriginalEmail(responseData.email ?? company.email);
         toast({ title: "Profile updated", description: "Company profile saved successfully." });
       }
+
+      invalidateProfile();
     } catch (err: any) {
       toast({
         title: "Error",

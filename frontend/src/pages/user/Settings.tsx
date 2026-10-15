@@ -11,6 +11,7 @@ import { toast, useToast } from "@/hooks/use-toast";
 import { ImageUploadCrop } from "@/components/ui/image-upload-crop";
 //import api from "@/utils/axios";
 import api from "@/services/api";
+import { invalidateProfile } from "@/hooks/useUserProfile";
 import SupportChat from "@/components/support/SupportChat";
 
 const Settings = () => {
@@ -148,6 +149,8 @@ const Settings = () => {
           variant: "success",
         });
       }
+
+      invalidateProfile();
     } catch (error: any) {
       toast({
         title: "Error updating profile",

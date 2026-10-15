@@ -9,6 +9,7 @@ import Preloader from "@/components/ui/preloader";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUploadCrop } from "@/components/ui/image-upload-crop";
 import api from "@/services/api";
+import { invalidateProfile } from "@/hooks/useUserProfile";
 import SupportChat from "@/components/support/SupportChat";
 import DeleteAccountSection from "@/components/settings/DeleteAccountSection";
 
@@ -75,6 +76,7 @@ const TeamSettings = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast({ title: "Profile updated", variant: "success" } as any);
+      invalidateProfile();
     } catch (err: any) {
       toast({ title: "Error", description: err?.response?.data?.message || "Update failed.", variant: "destructive" });
     } finally {
