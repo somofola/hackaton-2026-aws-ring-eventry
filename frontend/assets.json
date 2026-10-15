@@ -1,0 +1,7 @@
+{
+  "icon": {
+    "iconPath": "icon.png",
+    "platforms": ["android", "ios"],
+    "resize": true
+  }
+}

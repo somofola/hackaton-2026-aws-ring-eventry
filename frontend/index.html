@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+
+  <title>Eventry | Ring & Face Check-In for Events</title>
+  <meta name="description"
+    content="Eventry lets you register, pay for, and check in to events using AWS Ring devices and facial recognition." />
+  <meta name="keywords"
+    content="Eventry, event management, Ring device check-in, facial recognition check-in, event ticketing" />
+  <meta name="author" content="Shola Omofola" />
+
+  <meta property="og:title" content="Eventry | Ring & Face Check-In for Events" />
+  <meta property="og:description"
+    content="Register, pay, and check in to events with AWS Ring devices and facial recognition — powered by Eventry." />
+  <meta property="og:image" content="/logo.png" />
+  <meta property="og:url" content="https://eventry.app" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Eventry" />
+  <meta property="og:logo" content="/logo.png" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Eventry | Ring & Face Check-In for Events" />
+  <meta name="twitter:description"
+    content="Register, pay, and check in to events with AWS Ring devices and facial recognition — powered by Eventry." />
+  <meta name="twitter:image" content="/logo.png" />
+  <meta name="twitter:site" content="@Eventry" />
+
+
+  <!-- SECURITY (F-18): Baseline CSP. Tighten per environment by replacing
+       'unsafe-inline'/'unsafe-eval' with nonces/hashes once Stripe + Paystack
+       script sources are fully enumerated. -->
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' data: blob:;
+             img-src 'self' data: blob: https:;
+             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+             font-src 'self' data: https://fonts.gstatic.com;
+             script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://js.paystack.co;
+             connect-src 'self' http: https: ws: wss:;
+             frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://checkout.paystack.com https://www.openstreetmap.org;
+             base-uri 'self';
+             form-action 'self';
+             object-src 'none';" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+
+</body>
+
+</html>

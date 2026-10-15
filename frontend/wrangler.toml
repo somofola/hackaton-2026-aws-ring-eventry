@@ -1,0 +1,9 @@
+name = "eventry-app"
+compatibility_date = "2025-03-01"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
+
+[vars]
+VITE_API_URL = "https://api.eventry.app/api"

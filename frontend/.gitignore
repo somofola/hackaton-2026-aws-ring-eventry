@@ -1,0 +1,58 @@
+# Logs
+logs
+*.log
+.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+bun.lockb
+memory
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+backend-junk
+backend.zip
+node_modules
+vendor
+composer.json
+composer.lock
+
+# Build artifacts
+build
+coverage
+.vite
+.wrangler
+
+# Mobile / Capacitor native projects
+android
+ios
+*.apk
+*.aab
+*.ipa
+
+# Env
+.env.local
+.env.development
+.env.production
+
+# OS
+Thumbs.db
+
+# Misc
+*.tsbuildinfo
+.eslintcache

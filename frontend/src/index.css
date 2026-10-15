@@ -1,0 +1,243 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 20%;
+
+    --primary: 213 100% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 198 100% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 212 100% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 213 100% 90%;
+    --input: 213 100% 95%;
+    --ring: 213 100% 40%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 213 100% 40%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 198 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 212 100% 50%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 213 100% 35%;
+    --sidebar-ring: 180 100% 50%;
+  }
+
+  .dark {
+    --background: 213 100% 5%;
+    --foreground: 0 0% 95%;
+
+    --card: 213 100% 5%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 213 100% 5%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 198 100% 50%;
+    --primary-foreground: 0 0% 5%;
+
+    --secondary: 213 100% 15%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 213 100% 10%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 212 100% 50%;
+    --accent-foreground: 0 0% 5%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 213 100% 15%;
+    --input: 213 100% 15%;
+    --ring: 198 100% 50%;
+    
+    --sidebar-background: 213 100% 8%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 198 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 213 100% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 213 100% 12%;
+    --sidebar-ring: 198 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    color: #333333;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+  
+  .animation-delay-200 {
+    animation-delay: 0.2s;
+    opacity: 0;
+  }
+  
+  .animation-delay-400 {
+    animation-delay: 0.4s;
+    opacity: 0;
+  }
+  
+  .animation-delay-600 {
+    animation-delay: 0.6s;
+    opacity: 0;
+  }
+
+  /* Background patterns */
+  .bg-grid-pattern {
+    background-image: radial-gradient(circle at 1px 1px, rgba(0,82,204,0.1) 1px, transparent 0);
+    background-size: 20px 20px;
+  }
+
+  /* Glassmorphism */
+  .glass {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Hover effects */
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 82, 204, 0.15);
+  }
+
+  /* Button enhancements */
+  .btn-primary {
+    background: linear-gradient(135deg, #0052cc 0%, #0077ff 100%);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 82, 204, 0.2);
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(0, 82, 204, 0.3);
+  }
+
+  /* Card improvements */
+  .card-enhanced {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 82, 204, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .card-enhanced:hover {
+    border-color: rgba(0, 82, 204, 0.2);
+    box-shadow: 0 10px 40px rgba(0, 82, 204, 0.1);
+  }
+}
+
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(30px, -20px) scale(1.05); }
+  66%      { transform: translate(-20px, 20px) scale(0.95); }
+}
+.animate-blob { animation: blob 14s ease-in-out infinite; }
+.animation-delay-2000 { animation-delay: 2s; }
+.animation-delay-4000 { animation-delay: 4s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%      { transform: translateY(-12px) rotate(1deg); }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mirrors qr-scanner's highlightScanRegion breathing animation exactly
+   (new QrScanner(video, cb, { highlightScanRegion: true }) in QRScanner.tsx) —
+   so the Ring live view's scan-region highlight matches the handheld
+   scanner's pixel-for-pixel, not just approximates it. */
+@keyframes scan-region-breathe {
+  from {
+    transform: scale(0.98);
+  }
+  to {
+    transform: scale(1.01);
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #0052cc, #0077ff);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #003d99, #0055cc);
+}
+
+/* Enhanced focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+}
+
+/* Text gradient utility */
+.text-gradient {
+  background: linear-gradient(135deg, #0052cc 0%, #00aaff 50%, #0077ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

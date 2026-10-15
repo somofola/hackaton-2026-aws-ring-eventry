@@ -1,0 +1,6 @@
+full_name*,email*,job_title*,department,phone*,linkedin,twitter,facebook
+John Doe,john.doe@company.com,Software Engineer,Engineering,+1 555 100 0001,https://linkedin.com/in/johndoe,https://twitter.com/johndoe,https://facebook.com/johndoe
+Jane Smith,jane.smith@company.com,Product Manager,Product,+1 555 100 0002,https://linkedin.com/in/janesmith,,
+Michael Johnson,m.johnson@company.com,Sales Executive,Sales,+1 555 100 0003,,https://twitter.com/mjohnson,
+Emily Davis,emily.davis@company.com,HR Specialist,Human Resources,+1 555 100 0004,https://linkedin.com/in/emilydavis,,
+Robert Brown,robert.brown@company.com,Finance Analyst,Finance,+1 555 100 0005,,,
