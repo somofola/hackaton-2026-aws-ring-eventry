@@ -58,10 +58,17 @@ return new class extends Migration {
         });
 
         if (Schema::hasColumn('payments', 'payment_gateway_response')) {
-            Schema::table('payments', function (Blueprint $table) {
-                $table->string('payment_gateway_response')->nullable()->change();
-                $table->renameColumn('payment_gateway_response', 'stripe_payment_id');
-            });
+            if (Schema::getConnection()->getDriverName() === 'pgsql') {
+                // Raw SQL to avoid Laravel's auto-generated "comment on column"
+                // statement running before the column exists under its new name.
+                DB::statement('ALTER TABLE payments DROP COLUMN payment_gateway_response');
+                DB::statement('ALTER TABLE payments ADD COLUMN stripe_payment_id varchar(255) NULL');
+            } else {
+                Schema::table('payments', function (Blueprint $table) {
+                    $table->string('payment_gateway_response')->nullable()->change();
+                    $table->renameColumn('payment_gateway_response', 'stripe_payment_id');
+                });
+            }
         }
     }
 };
