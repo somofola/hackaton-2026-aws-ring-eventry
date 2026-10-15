@@ -224,6 +224,40 @@ php artisan config:clear
 php artisan config:cache
 ```
 
+**Important:** check for a duplicate `AWS_DEFAULT_REGION` line elsewhere in `.env` (this repo has historically had one left over from B2/R2 config) — dotenv uses the *last* definition in the file, so a stray duplicate silently overrides the region you just set:
+```bash
+grep -n "^AWS_DEFAULT_REGION" .env   # must show exactly ONE line, with the correct region
+```
+
+### 4. Make Uploaded Objects Publicly Readable
+A fresh bucket (even with "Block public access" unchecked) does not make individual objects public by default — you also need a bucket policy granting read access:
+
+1. S3 Console → your bucket → **Permissions** tab → **Bucket policy** → paste (replace `your-bucket-name`):
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::your-bucket-name/*"
+    }
+  ]
+}
+```
+2. Optionally also set `'visibility' => 'public'` on the `s3` disk in `config/filesystems.php` so Laravel sets a public-read ACL on every new upload — this **requires** the bucket's Object Ownership to be "ACLs enabled" (step 1.4 above). If the bucket uses the modern "ACLs disabled / Bucket owner enforced" default instead, remove this config line and rely on the bucket policy alone — it already covers public reads regardless of ACL settings.
+
+### 5. Check for Silent Upload Failures
+The `s3` disk config has `'throw' => false`, meaning a failed upload (bad credentials, wrong bucket/region) returns `false`/empty instead of throwing — which can surface later as a confusing AWS SDK validation error (e.g. `"GetObject operation: [Key] expected string length >= 1"`) when the empty path is passed to `$disk->url()`. Guard against this in any upload code:
+```php
+$path = $request->file('x')->storeAs('dir', $filename, 's3');
+if (!$path) {
+    return response()->json(['message' => 'Upload failed — check AWS credentials/bucket config.'], 500);
+}
+```
+
 ---
 
 ## Part 5: Resolving Cross-Origin Resource Sharing (CORS)

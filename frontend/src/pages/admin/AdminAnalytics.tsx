@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, CreditCard, Calendar, Eye, TrendingUp, TrendingDown, Minus, Loader2, Ticket, UserCheck, BarChart2, Clock } from "lucide-react";
+import { Users, Calendar, Loader2, Ticket, UserCheck, BarChart2, Clock } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, PieChart, Pie, Cell,
@@ -12,18 +11,9 @@ import api from "@/services/api";
 interface AnalyticsData {
   summary: {
     staff_count: number;
-    total_cards: number;
-    active_cards: number;
-    suspended_cards: number;
-    total_views: number;
     events_created: number;
     total_attendees: number;
   };
-  monthly_views: { month: string; views: number }[];
-  departments: { department: string; cards: number; views: number; percent: number; color: string }[];
-  top_card: { name: string; views: number } | null;
-  top_department: { name: string; views: number } | null;
-  growth_rate: number;
   events: {
     by_status: { status: string; count: number; color: string }[];
     monthly_created: { month: string; count: number }[];
@@ -44,7 +34,6 @@ const AdminAnalytics = () => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [view, setView] = useState<"cards" | "events">("cards");
 
   useEffect(() => {
     api.get("/corporate/analytics")
@@ -72,238 +61,31 @@ const AdminAnalytics = () => {
     );
   }
 
-  const { summary, monthly_views, departments, top_card, top_department, growth_rate } = data;
+  const { summary } = data;
   const events = data.events ?? null;
-
-  const GrowthIcon = growth_rate > 0 ? TrendingUp : growth_rate < 0 ? TrendingDown : Minus;
-  const growthColor = growth_rate > 0 ? "text-green-600" : growth_rate < 0 ? "text-red-600" : "text-gray-500";
 
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
-            <p className="text-gray-600 mt-1">Insights for your company's digital presence</p>
-          </div>
-          <Select value={view} onValueChange={(v) => setView(v as "cards" | "events")}>
-            <SelectTrigger className="w-44">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="cards">Card Analytics</SelectItem>
-              <SelectItem value="events">Event Analytics</SelectItem>
-            </SelectContent>
-          </Select>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
+          <p className="text-gray-600 mt-1">Insights for your events</p>
         </div>
-
-        {/* ── Card Analytics ─────────────────────────────────────────── */}
-        {view === "cards" && <>
-
-        {/* KPI Summary */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4">
-            <div className="flex items-center space-x-3">
-              <Users className="h-6 w-6 text-blue-500 flex-shrink-0" />
-              <div>
-                <p className="text-2xl font-bold">{summary.staff_count}</p>
-                <p className="text-sm text-gray-500">Staff Members</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center space-x-3">
-              <CreditCard className="h-6 w-6 text-green-500 flex-shrink-0" />
-              <div>
-                <p className="text-2xl font-bold">{summary.total_cards}</p>
-                <p className="text-sm text-gray-500">
-                  Business Cards
-                  {summary.suspended_cards > 0 && (
-                    <span className="ml-1 text-xs text-amber-500">({summary.suspended_cards} suspended)</span>
-                  )}
-                </p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center space-x-3">
-              <Eye className="h-6 w-6 text-purple-500 flex-shrink-0" />
-              <div>
-                <p className="text-2xl font-bold">{summary.total_views.toLocaleString()}</p>
-                <p className="text-sm text-gray-500">Total Card Views</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center space-x-3">
-              <TrendingUp className="h-6 w-6 text-orange-500 flex-shrink-0" />
-              <div>
-                <p className="text-2xl font-bold">
-                  {summary.total_cards > 0 ? (summary.total_views / summary.total_cards).toFixed(1) : "0"}
-                </p>
-                <p className="text-sm text-gray-500">Avg Views / Card</p>
-              </div>
-            </div>
-          </Card>
-
-        </div>
-
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Card Views Over Time</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {monthly_views.every(m => m.views === 0) ? (
-                <div className="flex items-center justify-center h-[300px] text-gray-400 text-sm">No scan data yet</div>
-              ) : (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={monthly_views}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="views" stroke="#3B82F6" strokeWidth={2} dot={{ r: 4 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Department Distribution</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {departments.length === 0 ? (
-                <div className="flex items-center justify-center h-[300px] text-gray-400 text-sm">No department data yet</div>
-              ) : (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={departments}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      dataKey="views"
-                      nameKey="department"
-                      label={({ department, percent }) => `${department}: ${percent}%`}
-                    >
-                      {departments.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number, name: string) => [value, name]} />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {departments.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Department Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={Math.max(240, departments.length * 52)}>
-                <BarChart
-                  data={departments.map(d => ({
-                    ...d,
-                    views_per_card: d.cards > 0 ? Math.round((d.views / d.cards) * 10) / 10 : 0,
-                  }))}
-                  layout="vertical"
-                  margin={{ top: 8, right: 24, left: 8, bottom: 8 }}
-                  barCategoryGap="55%"
-                  barSize={10}
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
-                  <YAxis type="category" dataKey="department" width={90} tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    formatter={(value: number, name: string) => [
-                      value,
-                      name === "cards" ? "Total Cards" : name === "views" ? "Total Views" : "Views / Card",
-                    ]}
-                  />
-                  <Bar dataKey="cards" name="cards" stackId="dept" fill="#F59E0B" radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="views" name="views" stackId="dept" fill="#3B82F6" radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="views_per_card" name="views_per_card" stackId="dept" fill="#10B981" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-              {/* Legend */}
-              <div className="flex items-center justify-center gap-6 mt-3 text-xs text-gray-500">
-                <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[#F59E0B]" />Total Cards</span>
-                <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[#3B82F6]" />Total Views</span>
-                <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[#10B981]" />Views / Card</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Summary stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Most Popular Card</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center">
-                {top_card ? (
-                  <>
-                    <p className="text-2xl font-bold text-blue-600">{top_card.name}</p>
-                    <p className="text-sm text-gray-500">{top_card.views.toLocaleString()} total views</p>
-                  </>
-                ) : (
-                  <p className="text-gray-400 text-sm">No cards yet</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Top Department</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center">
-                {top_department ? (
-                  <>
-                    <p className="text-2xl font-bold text-green-600">{top_department.name}</p>
-                    <p className="text-sm text-gray-500">{top_department.views.toLocaleString()} total views</p>
-                  </>
-                ) : (
-                  <p className="text-gray-400 text-sm">No department data yet</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Monthly Growth</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center">
-                <div className={`flex items-center justify-center gap-1 text-2xl font-bold ${growthColor}`}>
-                  <GrowthIcon className="h-6 w-6" />
-                  {growth_rate > 0 ? "+" : ""}{growth_rate}%
-                </div>
-                <p className="text-sm text-gray-500 mt-1">Card scans vs last month</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        </>}
 
         {/* ── Event Analytics ─────────────────────────────────────────── */}
-        {view === "events" && events && (
+        {events && (
           <>
             {/* Event KPIs */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="p-4">
+                <div className="flex items-center space-x-3">
+                  <Users className="h-6 w-6 text-blue-500 flex-shrink-0" />
+                  <div>
+                    <p className="text-2xl font-bold">{summary.staff_count}</p>
+                    <p className="text-sm text-gray-500">Staff Members</p>
+                  </div>
+                </div>
+              </Card>
               <Card className="p-4">
                 <div className="flex items-center space-x-3">
                   <Calendar className="h-6 w-6 text-orange-500 flex-shrink-0" />
