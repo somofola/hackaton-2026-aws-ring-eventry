@@ -158,17 +158,20 @@ class UserController extends Controller
         // Handle file upload
         try {
             if ($request->hasFile('profile_image_file') && $request->file('profile_image_file')->isValid()) {
+                /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+                $disk = Storage::disk('s3');
+
                 if ($user->profile_image_url) {
-                    Storage::disk('public')->delete(str_replace('/storage/', '', $user->profile_image_url));
+                    $oldPath = ltrim(parse_url($user->profile_image_url, PHP_URL_PATH) ?? '', '/');
+                    if ($oldPath) {
+                        $disk->delete($oldPath);
+                    }
                 }
 
                 $extension = $request->file('profile_image_file')->getClientOriginalExtension();
                 $filename  = time() . '_' . (string) Str::uuid() . '.' . $extension;
 
-                $path = $request->file('profile_image_file')->storeAs('profile', $filename, 'r2');
-
-                /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-                $disk = Storage::disk('r2');
+                $path = $request->file('profile_image_file')->storeAs('profile', $filename, 's3');
                 $user->profile_image_url = $disk->url($path);
             }
         } catch (\Exception $e) {

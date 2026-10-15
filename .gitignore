@@ -2,3 +2,4 @@ STREAMLINE_PLAN.md
 *.pem
 *claude*
 .claude/*.local.json
+eventry-s3-app-user_accessKeys.csv

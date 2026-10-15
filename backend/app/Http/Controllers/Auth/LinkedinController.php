@@ -184,7 +184,7 @@ class LinkedinController extends Controller
     }
 
     /**
-     * Fetch a LinkedIn avatar URL and store it in R2, returning the stored URL.
+     * Fetch a LinkedIn avatar URL and store it in S3, returning the stored URL.
      * Falls back to null on any failure so the caller can use the original URL.
      */
     private function storeLinkedinAvatar(string $url): ?string
@@ -194,8 +194,8 @@ class LinkedinController extends Controller
             if (!$response->successful()) return null;
 
             $filename = 'linkedin_' . time() . '_' . Str::uuid() . '.jpg';
-            Storage::disk('r2')->put('card/' . $filename, $response->body());
-            return Storage::disk('r2')->url('card/' . $filename);
+            Storage::disk('s3')->put('card/' . $filename, $response->body());
+            return Storage::disk('s3')->url('card/' . $filename);
         } catch (\Exception $e) {
             return null;
         }

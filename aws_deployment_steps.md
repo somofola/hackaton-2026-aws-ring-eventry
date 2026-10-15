@@ -34,8 +34,17 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install -y software-properties-common
 sudo add-apt-repository ppa:ondrej/php -y
 sudo apt update
-sudo apt install nginx postgresql postgresql-contrib php8.3-fpm php8.3-pgsql php8.3-curl php8.3-xml php8.3-bcmath php8.3-mbstring php8.3-zip php8.3-sqlite3 php8.3-cli unzip nano -y
+sudo apt install nginx postgresql postgresql-contrib php8.3-fpm php8.3-pgsql php8.3-curl php8.3-xml php8.3-bcmath php8.3-mbstring php8.3-zip php8.3-sqlite3 php8.3-cli unzip nano redis-server php8.3-redis -y
+sudo systemctl enable --now redis-server
 ```
+
+Verify redis is running and the PHP extension is loaded:
+```bash
+redis-cli ping          # expect: PONG
+php -m | grep -i redis  # expect: redis
+```
+
+Laravel's `CACHE_DRIVER=redis` in `.env` (required for cache tagging used by the events cache) depends on this. If `CACHE_DRIVER` was changed or redis installed *after* an earlier `config:cache`, the cached config won't pick it up — re-run `php artisan config:clear && php artisan config:cache` and restart php-fpm (`sudo systemctl restart php8.3-fpm`) so OPcache drops any stale compiled config.
 
 ### 2. Configure Local PostgreSQL Database
 ```bash

@@ -670,9 +670,9 @@ class EventController extends Controller
         if ($request->hasFile('profile_image')) {
             $filename = time() . '_' . (string) Str::uuid() . '.webp';
             $imageContent = app(ImageService::class)->processCardImage($request->file('profile_image'), 250);
-            Storage::disk('r2')->put('event/speaker/' . $filename, $imageContent);
+            Storage::disk('s3')->put('event/speaker/' . $filename, $imageContent);
             /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-            $disk = Storage::disk('r2');
+            $disk = Storage::disk('s3');
             $imageUrl = $disk->url('event/speaker/' . $filename);
         }
 
@@ -786,9 +786,9 @@ class EventController extends Controller
         if ($request->hasFile('profile_image')) {
             $filename = time() . '_' . (string) Str::uuid() . '.webp';
             $imageContent = app(ImageService::class)->processCardImage($request->file('profile_image'), 250);
-            Storage::disk('r2')->put('event/speaker/' . $filename, $imageContent);
+            Storage::disk('s3')->put('event/speaker/' . $filename, $imageContent);
             /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-            $disk = Storage::disk('r2');
+            $disk = Storage::disk('s3');
             $speakerUser->update(['profile_image_url' => $disk->url('event/speaker/' . $filename)]);
         }
 
@@ -893,9 +893,9 @@ class EventController extends Controller
         if ($request->hasFile('logo')) {
             $filename = time() . '_' . (string) Str::uuid() . '.webp';
             $imageContent = app(ImageService::class)->processCardImage($request->file('logo'), 25);
-            Storage::disk('r2')->put('event/exhibitor/' . $filename, $imageContent);
+            Storage::disk('s3')->put('event/exhibitor/' . $filename, $imageContent);
             /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-            $disk = Storage::disk('r2');
+            $disk = Storage::disk('s3');
             $logoUrl = $disk->url('event/exhibitor/' . $filename);
         }
 
@@ -944,9 +944,9 @@ class EventController extends Controller
         if ($request->hasFile('logo')) {
             $filename = time() . '_' . (string) Str::uuid() . '.webp';
             $imageContent = app(ImageService::class)->processCardImage($request->file('logo'), 25);
-            Storage::disk('r2')->put('event/exhibitor/' . $filename, $imageContent);
+            Storage::disk('s3')->put('event/exhibitor/' . $filename, $imageContent);
             /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-            $disk = Storage::disk('r2');
+            $disk = Storage::disk('s3');
             $data['logo_url'] = $disk->url('event/exhibitor/' . $filename);
         }
 
@@ -990,9 +990,9 @@ class EventController extends Controller
         if ($request->hasFile('logo')) {
             $filename = time() . '_' . (string) Str::uuid() . '.webp';
             $imageContent = app(ImageService::class)->processCardImage($request->file('logo'), 25);
-            Storage::disk('r2')->put('event/sponsor/' . $filename, $imageContent);
+            Storage::disk('s3')->put('event/sponsor/' . $filename, $imageContent);
             /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-            $disk = Storage::disk('r2');
+            $disk = Storage::disk('s3');
             $logoUrl = $disk->url('event/sponsor/' . $filename);
         }
 
@@ -1036,9 +1036,9 @@ class EventController extends Controller
         if ($request->hasFile('logo')) {
             $filename = time() . '_' . (string) Str::uuid() . '.webp';
             $imageContent = app(ImageService::class)->processCardImage($request->file('logo'), 25);
-            Storage::disk('r2')->put('event/sponsor/' . $filename, $imageContent);
+            Storage::disk('s3')->put('event/sponsor/' . $filename, $imageContent);
             /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-            $disk = Storage::disk('r2');
+            $disk = Storage::disk('s3');
             $data['logo_url'] = $disk->url('event/sponsor/' . $filename);
         }
 
@@ -1339,10 +1339,10 @@ class EventController extends Controller
 
         $filename = time() . '_' . (string) Str::uuid() . '.webp';
         $imageContent = app(ImageService::class)->processCardImage($request->file('floor_plan_image'), 250);
-        Storage::disk('r2')->put('event/floor_plan/' . $filename, $imageContent);
+        Storage::disk('s3')->put('event/floor_plan/' . $filename, $imageContent);
 
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-        $disk = Storage::disk('r2');
+        $disk = Storage::disk('s3');
         $imageUrl = $disk->url('event/floor_plan/' . $filename);
 
         $floorPlan = EventFloorPlan::create([
@@ -1373,10 +1373,10 @@ class EventController extends Controller
 
         $filename = time() . '_' . (string) Str::uuid() . '.webp';
         $imageContent = app(ImageService::class)->processCardImage($request->file('banner_image_file'), 200);
-        Storage::disk('r2')->put('event/banner/' . $filename, $imageContent);
+        Storage::disk('s3')->put('event/banner/' . $filename, $imageContent);
 
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-        $disk = Storage::disk('r2');
+        $disk = Storage::disk('s3');
         $event->update(['image_url' => $disk->url('event/banner/' . $filename)]);
 
         return response()->json(['image_url' => $event->image_url]);

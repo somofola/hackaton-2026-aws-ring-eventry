@@ -238,21 +238,22 @@ class AdminController extends Controller
             'profile_image_file' => 'sometimes|nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
-        // Handle logo upload (same R2 pattern as UserController)
+        // Handle logo upload (same S3 pattern as UserController)
         if ($request->hasFile('profile_image_file') && $request->file('profile_image_file')->isValid()) {
             try {
-                // Delete old logo if stored on R2
+                /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+                $disk = Storage::disk('s3');
+
+                // Delete old logo if stored on S3
                 if ($user->profile_image_url) {
                     $oldPath = parse_url($user->profile_image_url, PHP_URL_PATH);
-                    Storage::disk('r2')->delete(ltrim($oldPath, '/'));
+                    $disk->delete(ltrim($oldPath, '/'));
                 }
 
                 $extension = $request->file('profile_image_file')->getClientOriginalExtension();
                 $filename  = time() . '_' . (string) Str::uuid() . '.' . $extension;
-                $path = $request->file('profile_image_file')->storeAs('profile', $filename, 'r2');
+                $path = $request->file('profile_image_file')->storeAs('profile', $filename, 's3');
 
-                /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-                $disk = Storage::disk('r2');
                 $validated['profile_image_url'] = $disk->url($path);
             } catch (\Exception $e) {
                 return response()->json(['message' => 'Logo upload failed.', 'error' => $e->getMessage()], 500);
