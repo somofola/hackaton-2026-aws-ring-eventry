@@ -57,7 +57,7 @@ class UserController extends Controller
         unset($validated['role']);
         $user = new User();
         $user->fill($validated);
-        $user->forceFill(['role' => $role])->save();
+        $user->forceFill(['role' => $role, 'email_verified_at' => now()])->save();
 
         return response()->json($user, 201);
     }
