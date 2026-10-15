@@ -1,0 +1,39 @@
+# =====================================================================
+# Security + Rewrite for Laravel app in /backend
+# =====================================================================
+
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+    
+    # Block sensitive files (like .env, .git, composer, etc.)
+    RewriteRule (^|/)\. - [F,L]
+
+     # Block access to core Laravel folders, but allow /public/storage --- not working
+	RewriteCond %{REQUEST_URI} !^/backend/public/storage/
+	#RewriteRule ^(app|bootstrap|config|database|resources|routes|tests|vendor|storage)/ - [F,L]
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|tests|vendor)/ - [F,L]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Extra protection: deny access to certain file types
+<FilesMatch "\.(env|log|ini|sql|bak|config|json|md|lock|gitignore|htaccess)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

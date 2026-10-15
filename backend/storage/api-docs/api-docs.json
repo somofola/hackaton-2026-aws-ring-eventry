@@ -1,0 +1,250 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Test API",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Register a new user",
+                "description": "Creates a new user and returns the user object",
+                "operationId": "8a56853624e025573120a09a4c75d468",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "format": "email"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        },
+                                        "status": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/categories/{id}": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get a category by ID",
+                "description": "Returns a single category",
+                "operationId": "afb9761981e08c44128cf95c40565842",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the category to fetch",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/departments": {
+            "get": {
+                "tags": [
+                    "Departments"
+                ],
+                "summary": "Get list of departments",
+                "description": "Returns all departments",
+                "operationId": "da8820891dd6bf08713e9d77fbe6389f",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/responses": {
+            "get": {
+                "tags": [
+                    "Responses"
+                ],
+                "summary": "Get list of responses",
+                "description": "Returns all responses",
+                "operationId": "b758fb63651c6f6faf5e4a105a4fb0c6",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/statuses": {
+            "get": {
+                "tags": [
+                    "Statuses"
+                ],
+                "summary": "Get list of statuses",
+                "description": "Returns all statuses",
+                "operationId": "e96ea40c6f497546795df9ec612e1928",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/tickets": {
+            "get": {
+                "tags": [
+                    "Tickets"
+                ],
+                "summary": "Get list of tickets",
+                "description": "Returns all tickets",
+                "operationId": "0082053c3590628e674a11ec0d1466e6",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/vendor-categories": {
+            "get": {
+                "tags": [
+                    "Vendor Categories"
+                ],
+                "summary": "Get list of vendor categories",
+                "description": "Returns all vendor categories",
+                "operationId": "aeff5ee23f8f50f3daabd948cec67cb1",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/vendors": {
+            "get": {
+                "tags": [
+                    "Vendors"
+                ],
+                "summary": "Get list of vendors",
+                "description": "Returns all vendors",
+                "operationId": "c40acb075c0143f113c61ea8bde7b609",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Categories",
+            "description": "Categories"
+        },
+        {
+            "name": "Departments",
+            "description": "Departments"
+        },
+        {
+            "name": "Responses",
+            "description": "Responses"
+        },
+        {
+            "name": "Statuses",
+            "description": "Statuses"
+        },
+        {
+            "name": "Tickets",
+            "description": "Tickets"
+        },
+        {
+            "name": "Vendor Categories",
+            "description": "Vendor Categories"
+        },
+        {
+            "name": "Vendors",
+            "description": "Vendors"
+        }
+    ]
+}

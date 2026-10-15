@@ -1,0 +1,75 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        // Add new columns
+        Schema::table('payments', function (Blueprint $table) {
+            if (!Schema::hasColumn('payments', 'type')) {
+                $table->enum('type', ['event_ticket_category', 'subscription_plan'])->after('user_id');
+            }
+
+            if (!Schema::hasColumn('payments', 'item_id')) {
+                $table->unsignedBigInteger('item_id')->after('type')->comment('ticket_category_id for events, subscription_plan_id for business cards`/event plan subscription`'); 
+            }
+        });
+
+        // Drop foreign key and column if they exist
+        if (Schema::hasColumn('payments', 'subscription_plan_id')) {
+            Schema::table('payments', function (Blueprint $table) {
+                $table->dropForeign(['subscription_plan_id']);
+                $table->dropColumn('subscription_plan_id');
+            });
+        }
+
+        // Rename stripe_payment_id to payment_gateway_response if it exists
+        if (Schema::hasColumn('payments', 'stripe_payment_id')) {
+            Schema::table('payments', function (Blueprint $table) {
+                $table->renameColumn('stripe_payment_id', 'payment_gateway_response');
+            });
+        }
+
+        // Ensure payment_gateway_response exists and is of type JSON
+        if (!Schema::hasColumn('payments', 'payment_gateway_response')) {
+            Schema::table('payments', function (Blueprint $table) {
+                $table->json('payment_gateway_response')->nullable()->after('description');
+            });
+        } else {
+            // If column exists, convert to JSON (if supported by DB)
+            Schema::table('payments', function (Blueprint $table) {
+                $table->json('payment_gateway_response')->nullable()->change();
+            });
+        }
+    }
+
+    public function down(): void
+    {
+        Schema::table('payments', function (Blueprint $table) {
+            if (Schema::hasColumn('payments', 'type')) {
+                $table->dropColumn('type');
+            }
+
+            if (Schema::hasColumn('payments', 'item_id')) {
+                $table->dropColumn('item_id');
+            }
+        });
+
+        if (Schema::hasColumn('payments', 'payment_gateway_response')) {
+            Schema::table('payments', function (Blueprint $table) {
+                $table->string('payment_gateway_response')->nullable()->change();
+                $table->renameColumn('payment_gateway_response', 'stripe_payment_id');
+            });
+        }
+
+        Schema::table('payments', function (Blueprint $table) {
+            if (!Schema::hasColumn('payments', 'subscription_plan_id')) {
+                $table->unsignedBigInteger('subscription_plan_id')->nullable();
+                $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->onDelete('set null');
+            }
+        });
+    }
+};

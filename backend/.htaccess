@@ -1,0 +1,49 @@
+# =====================================================================
+# Security + Rewrite for Laravel app in /backend
+# (phpMyAdmin excluded) when phpmyadmin is in backend directory
+# =====================================================================
+
+ErrorDocument 403 /404
+
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # ✅ EXCLUDE phpMyAdmin completely from ALL rewrites
+    RewriteCond %{REQUEST_URI} ^/phpmyadmin/ [NC]
+    RewriteRule ^ - [L]
+
+    # Block sensitive dotfiles (like .env, .git, etc.)
+    RewriteRule (^|/)\. - [F,L]
+
+    # Allow access to /public/storage, block other Laravel folders
+    RewriteCond %{REQUEST_URI} !^/public/storage/
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|tests|vendor|storage)/ - [F,L]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ public/index.php [L]
+</IfModule>
+
+# =====================================================================
+# Extra protection (EXCLUDING phpMyAdmin)
+# =====================================================================
+
+<If "%{REQUEST_URI} !~ m#^/phpmyadmin/#">
+    <FilesMatch "(?i)(^|\.)(env|gitignore|composer\.json|package\.json|log|ini|sql|bak|config|json|md|lock|htaccess)(\.|$)">
+        Require all denied
+    </FilesMatch>
+</If>

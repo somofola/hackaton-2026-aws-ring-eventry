@@ -1,0 +1,2 @@
+- [completed-tasks-2026-06-14-session2](completed-tasks-2026-06-14-session2.md) — gpt-image-1 moderation_blocked fix via prompt scrub
+- [completed-tasks-2026-06-14](completed-tasks-2026-06-14.md) — NIM vision swap guidance, gpt-image-1 migration, JSON-mode hardening, DALL-E rename

@@ -1,0 +1,47 @@
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+/.fleet
+/.idea
+/.vscode
+passidy_backend.ziprr
+.rr.yaml
+rr.exe
+storage/ring-test-captures/
+
+# Logs
+storage/logs/*.log
+*.log
+
+# Caches
+bootstrap/cache/*.php
+!bootstrap/cache/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Build / deploy artifacts
+*.zip
+*.tar.gz
+deploy/
+
+# Local tooling
+.phpactor.json
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
