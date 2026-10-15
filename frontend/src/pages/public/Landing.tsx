@@ -10,6 +10,7 @@ import EventIconsBg from "@/components/landing/EventIconsBg";
 import api from "@/services/api";
 import { BRAND_NAME } from "@/lib/brand";
 import type { Event } from "@/types";
+import sholaPhoto from "@/assets/team/shola-omofola.jpg";
 
 const EVENT_GRADIENTS = [
   { from: "#3b82f6", to: "#7c3aed" },
@@ -291,10 +292,31 @@ const Landing: React.FC = () => {
 
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Team</h3>
-                <p className="text-sm text-gray-600">
-                  Built by the {BRAND_NAME} team for this hackathon — design, backend, mobile, and AWS
-                  integration handled end-to-end by the same small crew that runs the main product.
-                </p>
+                <div className="flex gap-3 items-start">
+                  <img
+                    src={sholaPhoto}
+                    alt="Shola Omofola"
+                    className="h-14 w-14 rounded-full object-cover shrink-0 ring-2 ring-primary/20"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">
+                      Shola Omofola{" "}
+                      <a
+                        href="https://www.linkedin.com/in/sholaomofola/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex align-middle text-primary hover:text-primary/80"
+                      >
+                        <Linkedin className="h-3.5 w-3.5 inline" />
+                      </a>
+                    </p>
+                    <p className="text-xs text-gray-500 mb-1">Full-Stack Software Engineer · AWS · Executive MBA</p>
+                    <p className="text-sm text-gray-600">
+                      Built {BRAND_NAME} end-to-end for this hackathon — design, backend, mobile, and AWS
+                      (Rekognition, S3, Lightsail, Amplify) integration.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
