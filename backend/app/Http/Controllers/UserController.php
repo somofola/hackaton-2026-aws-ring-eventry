@@ -64,7 +64,7 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        return response()->json($user->load(['cards', 'events', 'enrollments']));
+        return response()->json($user->load(['events', 'enrollments']));
     }
 
     public function update(Request $request, ?User $user = null)
@@ -263,7 +263,7 @@ class UserController extends Controller
 
     public function getProfile(Request $request)
     {
-        $user = $request->user()->load(['cards', 'events', 'enrollments']);
+        $user = $request->user()->load(['events', 'enrollments']);
         return response()->json($user);
     }
 
