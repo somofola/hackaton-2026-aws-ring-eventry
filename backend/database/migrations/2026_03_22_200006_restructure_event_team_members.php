@@ -16,7 +16,7 @@ return new class extends Migration
          */
         if ($isPgsql) {
             DB::statement('ALTER TABLE event_team_members DROP CONSTRAINT IF EXISTS event_team_members_team_member_id_foreign');
-            DB::statement('DROP INDEX IF EXISTS event_team_members_event_id_team_member_id_unique');
+            DB::statement('ALTER TABLE event_team_members DROP CONSTRAINT IF EXISTS event_team_members_event_id_team_member_id_unique');
         } else {
             $fks = DB::select("
             SELECT CONSTRAINT_NAME
