@@ -1,3 +1,0 @@
-- [2026-10-16 events+readme](completed-tasks-2026-10-16-session2.md) — admin events scoping fix, public event detail + register/login-to-buy flow, README deploy guide
-- [2026-10-16 team bio](completed-tasks-2026-10-16.md) — landing page Team section: photo + LinkedIn + bio
-- [2026-10-15 deploy debug](completed-tasks-2026-10-15.md) — Lightsail+Postgres deploy, S3 migration from R2, dead-code cleanup
