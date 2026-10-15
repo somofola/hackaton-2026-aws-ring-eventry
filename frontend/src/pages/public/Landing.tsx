@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import EventIconsBg from "@/components/landing/EventIconsBg";
 import api from "@/services/api";
 import { BRAND_NAME } from "@/lib/brand";
 import type { Event } from "@/types";
@@ -297,7 +298,8 @@ const Landing: React.FC = () => {
 
       {/* Features */}
       <section className="relative py-16 md:py-24 bg-gray-50 overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <EventIconsBg />
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <span className="inline-block text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full mb-4">
               How it works
