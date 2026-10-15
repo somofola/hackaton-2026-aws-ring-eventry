@@ -33,10 +33,10 @@ return new class extends Migration {
             });
         } elseif (Schema::getConnection()->getDriverName() === 'pgsql') {
             // Postgres can't auto-cast varchar -> json; drop and recreate instead of ->change().
+            // Raw SQL (not Schema::table) to avoid Laravel's auto-generated
+            // "comment on column" statement running before the column exists.
             DB::statement('ALTER TABLE payments DROP COLUMN payment_gateway_response');
-            Schema::table('payments', function (Blueprint $table) {
-                $table->json('payment_gateway_response')->nullable()->after('description');
-            });
+            DB::statement('ALTER TABLE payments ADD COLUMN payment_gateway_response json NULL');
         } else {
             // If column exists, convert to JSON (if supported by DB)
             Schema::table('payments', function (Blueprint $table) {
