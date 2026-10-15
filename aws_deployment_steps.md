@@ -102,6 +102,11 @@ php artisan config:cache
 php artisan route:cache
 ```
 
+**Optional — if you also ran `--seed`:** the seeded admin account (`admin@cardconnect.com` / `password`) ships with an unverified email and a weak default password. Verify the email and set a real password before exposing this instance publicly:
+```bash
+php artisan tinker --execute="\$u=\App\Models\User::where('email','admin@cardconnect.com')->first(); \$u->email_verified_at=now(); \$u->password=\Illuminate\Support\Facades\Hash::make('YourNewStrongPasswordHere'); \$u->save();"
+```
+
 ### 5. Configure Nginx Server Blocks
 Create a custom web configuration mapping entry point:
 ```bash

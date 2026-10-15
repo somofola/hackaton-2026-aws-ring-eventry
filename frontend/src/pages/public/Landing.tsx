@@ -453,7 +453,7 @@ const Landing: React.FC = () => {
                 sholz.hackathon+eventry@gmail.com
               </a>
               <a
-                href="https://github.com"
+                href="https://github.com/somofola/hackaton-2026-aws-ring-eventry"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-md border-2 border-white/40 backdrop-blur-sm bg-white/5 px-8 text-base font-semibold text-white hover:bg-white/10 hover:border-white/60 transition-all"
