@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
@@ -27,6 +28,12 @@ return new class extends Migration {
 
         // Ensure payment_gateway_response exists and is of type JSON
         if (!Schema::hasColumn('payments', 'payment_gateway_response')) {
+            Schema::table('payments', function (Blueprint $table) {
+                $table->json('payment_gateway_response')->nullable()->after('description');
+            });
+        } elseif (Schema::getConnection()->getDriverName() === 'pgsql') {
+            // Postgres can't auto-cast varchar -> json; drop and recreate instead of ->change().
+            DB::statement('ALTER TABLE payments DROP COLUMN payment_gateway_response');
             Schema::table('payments', function (Blueprint $table) {
                 $table->json('payment_gateway_response')->nullable()->after('description');
             });
