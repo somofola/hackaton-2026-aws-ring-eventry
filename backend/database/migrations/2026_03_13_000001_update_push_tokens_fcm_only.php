@@ -12,11 +12,23 @@ return new class extends Migration
         DB::table('push_tokens')->where('type', 'web')->delete();
 
         // Update the enum to only allow 'fcm'
-        DB::statement("ALTER TABLE push_tokens MODIFY COLUMN type ENUM('fcm') NOT NULL DEFAULT 'fcm'");
+        if (Schema::getConnection()->getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE push_tokens ALTER COLUMN type SET DEFAULT 'fcm'");
+            DB::statement("ALTER TABLE push_tokens DROP CONSTRAINT IF EXISTS push_tokens_type_check");
+            DB::statement("ALTER TABLE push_tokens ADD CONSTRAINT push_tokens_type_check CHECK (type IN ('fcm'))");
+        } else {
+            DB::statement("ALTER TABLE push_tokens MODIFY COLUMN type ENUM('fcm') NOT NULL DEFAULT 'fcm'");
+        }
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE push_tokens MODIFY COLUMN type ENUM('web','fcm') NOT NULL DEFAULT 'web'");
+        if (Schema::getConnection()->getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE push_tokens ALTER COLUMN type SET DEFAULT 'web'");
+            DB::statement("ALTER TABLE push_tokens DROP CONSTRAINT IF EXISTS push_tokens_type_check");
+            DB::statement("ALTER TABLE push_tokens ADD CONSTRAINT push_tokens_type_check CHECK (type IN ('web','fcm'))");
+        } else {
+            DB::statement("ALTER TABLE push_tokens MODIFY COLUMN type ENUM('web','fcm') NOT NULL DEFAULT 'web'");
+        }
     }
 };
