@@ -27,7 +27,9 @@ export default function VerifyEmailPage() {
             description: "Email verified successfully! Redirecting...",
             variant: "success",
           });
-          navigate("/login");
+          const redirect = localStorage.getItem("eventry_post_verify_redirect");
+          localStorage.removeItem("eventry_post_verify_redirect");
+          navigate(redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : "/login");
         } catch (err) {
           // Wait 3 seconds before showing the error message
           setTimeout(() => {

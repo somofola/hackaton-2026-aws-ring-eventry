@@ -18,6 +18,7 @@ import Splash from "./pages/Splash";
 
 // Public Landing
 import Landing from "./pages/public/Landing";
+import PublicEventDetail from "./pages/public/PublicEventDetail";
 
 // Guest Pages
 import Login from "./pages/auth/Login";
@@ -106,6 +107,7 @@ const AppRouter = () => (
 
           {/* Guest Routes */}
           <Route path="/" element={<RootRoute />} />
+          <Route path="/events/:slug" element={<PublicEventDetail />} />
 
           {/* Auth Routes */}
           <Route path="/login" element={<Login />} />

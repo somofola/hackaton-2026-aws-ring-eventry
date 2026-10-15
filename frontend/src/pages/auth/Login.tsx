@@ -79,7 +79,13 @@ const Login = () => {
 
       if (response?.user) {
         initPushNotifications().catch(() => {});
-        navigate(`/${response.user.user_type}/dashboard`);
+        const redirect = searchParams.get("redirect");
+        const eventMatch = redirect?.match(/^\/events\/(.+)$/);
+        if (eventMatch && response.user.user_type === "user") {
+          navigate(`/user/events/${eventMatch[1]}`);
+        } else {
+          navigate(`/${response.user.user_type}/dashboard`);
+        }
       }
     } finally {
       setIsLoading(false);

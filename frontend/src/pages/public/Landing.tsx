@@ -383,7 +383,11 @@ const Landing: React.FC = () => {
               {events.map((event) => {
                 const g = eventGradient(event.id);
                 return (
-                  <div key={event.uuid} className="group bg-white rounded-2xl border border-gray-100 shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300 overflow-hidden">
+                  <Link
+                    to={`/events/${event.slug}`}
+                    key={event.uuid}
+                    className="group bg-white rounded-2xl border border-gray-100 shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300 overflow-hidden block"
+                  >
                     <div className="h-36 relative overflow-hidden">
                       {event.image_url ? (
                         <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
@@ -411,7 +415,7 @@ const Landing: React.FC = () => {
                         <span>{event.current_attendees ?? 0} attending</span>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

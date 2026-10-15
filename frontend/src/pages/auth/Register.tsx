@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,6 +47,7 @@ const handleSocialRegister = async (provider: "google" | "microsoft" | "linkedin
 const Register = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -132,6 +133,8 @@ const Register = () => {
       });
 
       if (response.label === "success") {
+        const redirect = searchParams.get("redirect");
+        if (redirect) localStorage.setItem("eventry_post_verify_redirect", redirect);
         setTimeout(() => {
           navigate("/verify-email", { replace: true });
         }, 50);
