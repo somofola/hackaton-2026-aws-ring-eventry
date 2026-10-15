@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ScanFace, Radio, Ticket, ShieldCheck, Calendar, MapPin, Users,
-  ArrowRight, Sparkles, Github, Mail, Boxes, Cpu, Cloud, Code2, Linkedin, Server, Database, Brain,
+  ArrowRight, Sparkles, Github, Mail, Boxes, Cpu, Cloud, Code2, Linkedin, Server, Database, Brain, Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +62,7 @@ const STACK = [
   { Icon: Server, label: "AWS Lightsail (nginx + PHP-FPM)" },
   { Icon: Database, label: "AWS S3 (storage)" },
   { Icon: Brain, label: "AWS Bedrock (AI captions)" },
+  { Icon: Globe, label: "AWS Amplify (frontend hosting)" },
 ];
 
 const Landing: React.FC = () => {
@@ -279,7 +280,11 @@ const Landing: React.FC = () => {
                   </li>
                   <li className="flex gap-2.5 text-sm text-gray-600">
                     <Server className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    <span><span className="font-semibold text-gray-800">Lightsail</span> — hosts the Laravel API (nginx + PHP-FPM), frontend ships via Amplify.</span>
+                    <span><span className="font-semibold text-gray-800">Lightsail</span> — hosts the Laravel API (nginx + PHP-FPM).</span>
+                  </li>
+                  <li className="flex gap-2.5 text-sm text-gray-600">
+                    <Globe className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <span><span className="font-semibold text-gray-800">Amplify</span> — builds and serves the React frontend over CloudFront.</span>
                   </li>
                 </ul>
               </div>
