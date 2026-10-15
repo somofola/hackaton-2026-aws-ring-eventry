@@ -194,8 +194,109 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
+      {/* About */}
+      <section className="relative py-16 md:py-24 bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
+            <div>
+              <span className="inline-block text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full mb-4">
+                About this build
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold mb-5 tracking-tight">
+                A hackathon entry for <span className="text-gradient">smarter event entry</span>
+              </h2>
+              <p className="text-gray-600 leading-relaxed mb-4">
+                {BRAND_NAME} is a holistic, modern event platform. For this hackathon we focused on one problem:
+                getting attendees through the door without friction, using hardware most venues
+                already own — a Ring camera — paired with opt-in facial recognition.
+              </p>
+              <p className="text-gray-600 leading-relaxed mb-4">
+                Queue-based check-in (QR scanning, manual guest lists) breaks down at scale and adds a staffed
+                bottleneck at the one moment that sets the tone for the whole event. We wanted entry to require
+                zero action from the attendee — not "pull up your ticket," just walk in.
+              </p>
+              <p className="text-gray-600 leading-relaxed mb-6">
+                An attendee registers and pays for a ticket, optionally opts in with a quick selfie, and
+                from then on the Ring device at the entrance (or a staff member's face-check-in tablet)
+                recognizes them automatically and checks them in — chime included.
+              </p>
+
+              <div className="space-y-3 mb-6">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400">The flow, end to end</h3>
+                {[
+                  { n: "1", t: "Register & pay", d: "Attendee buys a ticket via Stripe or Paystack; a QR badge is issued as a fallback." },
+                  { n: "2", t: "Opt in with a selfie", d: "One photo is captured, converted to a face vector via AWS Rekognition — scoped to this event only." },
+                  { n: "3", t: "Ring detects arrival", d: "A motion/doorbell event fires a signed webhook with a captured frame to the backend." },
+                  { n: "4", t: "Match & check in", d: "Rekognition compares the frame to opted-in attendees; a confident match auto-checks them in and chimes the Ring device." },
+                ].map((s) => (
+                  <div key={s.n} className="flex gap-3">
+                    <div className="h-7 w-7 shrink-0 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
+                      {s.n}
+                    </div>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      <span className="font-semibold text-gray-800">{s.t}.</span> {s.d}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-gray-600 leading-relaxed">
+                Everything ships in the same build: event authoring, ticket sales, live check-in dashboards, and
+                Ring device management — not just the recognition demo, the whole operational loop around it.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Stack &amp; tools</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {STACK.map((s) => (
+                    <div key={s.label} className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-xl p-3">
+                      <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <s.Icon className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="text-sm font-medium text-gray-700">{s.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Where AWS does the work</h3>
+                <ul className="space-y-2.5">
+                  <li className="flex gap-2.5 text-sm text-gray-600">
+                    <ScanFace className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <span><span className="font-semibold text-gray-800">Rekognition</span> — face enrollment + match-on-arrival, the core check-in decision.</span>
+                  </li>
+                  <li className="flex gap-2.5 text-sm text-gray-600">
+                    <Brain className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <span><span className="font-semibold text-gray-800">Bedrock (Claude 3 Haiku)</span> — captions Ring-captured thumbnails for the staff activity feed.</span>
+                  </li>
+                  <li className="flex gap-2.5 text-sm text-gray-600">
+                    <Database className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <span><span className="font-semibold text-gray-800">S3</span> — stores event media and captured check-in frames.</span>
+                  </li>
+                  <li className="flex gap-2.5 text-sm text-gray-600">
+                    <Server className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <span><span className="font-semibold text-gray-800">Lightsail</span> — hosts the Laravel API (nginx + PHP-FPM), frontend ships via Amplify.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Team</h3>
+                <p className="text-sm text-gray-600">
+                  Built by the {BRAND_NAME} team for this hackathon — design, backend, mobile, and AWS
+                  integration handled end-to-end by the same small crew that runs the main product.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
-      <section className="relative py-16 md:py-24 bg-white overflow-hidden">
+      <section className="relative py-16 md:py-24 bg-gray-50 overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <span className="inline-block text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full mb-4">
@@ -286,56 +387,6 @@ const Landing: React.FC = () => {
               })}
             </div>
           )}
-        </div>
-      </section>
-
-      {/* About */}
-      <section className="relative py-16 md:py-24 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
-            <div>
-              <span className="inline-block text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full mb-4">
-                About this build
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold mb-5 tracking-tight">
-                A hackathon entry for <span className="text-gradient">smarter event entry</span>
-              </h2>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                {BRAND_NAME} is a holistic, modern event platform. For this hackathon we focused on one problem:
-                getting attendees through the door without friction, using hardware most venues
-                already own — a Ring camera — paired with opt-in facial recognition.
-              </p>
-              <p className="text-gray-600 leading-relaxed">
-                An attendee registers and pays for a ticket, optionally opts in with a quick selfie, and
-                from then on the Ring device at the entrance (or a staff member's face-check-in tablet)
-                recognizes them automatically and checks them in — chime included.
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Stack &amp; tools</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {STACK.map((s) => (
-                    <div key={s.label} className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-xl p-3">
-                      <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <s.Icon className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="text-sm font-medium text-gray-700">{s.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Team</h3>
-                <p className="text-sm text-gray-600">
-                  Built by the {BRAND_NAME} team for this hackathon — design, backend, mobile, and AWS
-                  integration handled end-to-end by the same small crew that runs the main product.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
