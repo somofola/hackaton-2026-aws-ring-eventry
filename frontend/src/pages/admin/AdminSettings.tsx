@@ -105,11 +105,8 @@ const AdminSettings = () => {
   const [templateSaving, setTemplateSaving] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      api.get("/my-company"),
-      api.get("/my-card-templates"),
-    ]).then(([profileRes, templatesRes]) => {
-        const d = profileRes.data;
+    api.get("/my-company")
+      .then(({ data: d }) => {
         setUserId(d.id ?? 0);
         setCompany({
           name: d.name ?? "",
@@ -133,12 +130,17 @@ const AdminSettings = () => {
           current: d.secondary_email ?? "",
           verified_at: d.secondary_email_verified_at ?? "",
         }));
-        setTemplates(Array.isArray(templatesRes.data) ? templatesRes.data : []);
       })
       .catch(() =>
         toast({ title: "Error", description: "Failed to load company profile.", variant: "destructive" })
       )
       .finally(() => setProfileLoading(false));
+
+    // Card templates are a separate, optional feature — don't let a failure
+    // here (e.g. feature not deployed on this backend) block the profile load above.
+    api.get("/my-card-templates")
+      .then(({ data }) => setTemplates(Array.isArray(data) ? data : []))
+      .catch(() => setTemplates([]));
   }, []);
 
   const setField = (field: keyof typeof company) =>
