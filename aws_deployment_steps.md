@@ -67,8 +67,13 @@ cd /var/www/laravel-api
 git clone <your-laravel-repo-url> .
 composer install --no-dev --optimize-autoloader
 
+# Recreate storage subdirectories (git doesn't track empty dirs, so a fresh
+# clone is often missing these — Laravel will 500 on cache/view/session writes without them)
+mkdir -p storage/framework/{cache,cache/data,sessions,views,testing}
+
 # Set Standard Web Framework Permissions
 sudo chown -R www-data:www-data storage bootstrap/cache
+sudo chmod -R ug+rwx storage bootstrap/cache
 ```
 
 ### 4. Setup Application Environment Variables
