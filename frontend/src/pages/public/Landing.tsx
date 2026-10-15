@@ -329,7 +329,7 @@ const Landing: React.FC = () => {
       </section>
 
       {/* Latest Events */}
-      <section id="events" className="relative py-16 md:py-24 bg-gray-50 border-y border-gray-100">
+      <section id="events" className="relative py-16 md:py-24 bg-white border-y border-gray-100">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <span className="inline-block text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full mb-4">
