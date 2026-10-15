@@ -294,3 +294,39 @@ Commit all alterations and push changes to your linked remote repository (GitHub
    * **Base directory:** `dist` (Vite output target) or `build` (CRA target).
    * **Build command:** `npm run build`.
 6. Click **Save and deploy**. Amplify compiles tracking assets and spins your live interface up instantly across their globally scaled CloudFront CDN edge loops.
+
+---
+
+## Part 7: Setting Up a Demo Ring Device
+
+No physical Ring hardware is required to demo check-in — the app supports a shared "Playground" virtual device from Ring's own Developer Console, backed by a manually-refreshed access token stored in the database (not `.env`).
+
+### 1. Get Ring Playground Credentials (optional, for live chime/motion features)
+1. Sign in to the **Ring Developer Console** (developer account required).
+2. Open the **Playground** section — this gives you a virtual device ID and a short-lived Partner API access token without owning real hardware.
+3. Copy the Playground device ID and access token. (Also grab `client_id` / `client_secret` / HMAC secret if you plan to test real webhook delivery — not required for manual check-in demos.)
+
+Skip this step entirely if you only need manual QR/face check-in in the demo — Ring hardware is only needed for the auto-chime/motion-detection features.
+
+### 2. Save Platform Credentials (Admin UI)
+1. Log in as admin → **Ring Devices** page (`/admin/ring-devices`).
+2. Find the **Platform Credentials** section.
+3. Paste the Playground access token (and client ID/secret/HMAC secret if applicable) → Save.
+
+This writes to the `ring_platform_credentials` table via `POST /api/ring-platform-credentials` — not an env var.
+
+### 3. Create the Device Row
+1. Same page, under device management → **Ring Device ID** field.
+2. Enter the Playground device ID from step 1 (or any placeholder string if you're skipping real Ring integration and only need manual check-in to work).
+3. Fill in **Name** and **Location** (optional) → **Create**.
+
+### 4. Assign the Device to an Event
+1. On the device's row, use the **assign to event** action.
+2. Pick the target event. This sets `assigned_event_id` on the device so team members see it in the check-in device picker.
+
+### 5. Test Without Waiting on a Real Motion Event
+From **Team → Check-in → [event]** → "Ring Counter" tab, use the built-in test controls (wired to `RingWebhookController::testChime` / `testCapture`):
+- **Test Chime** — confirms `RING_ACCESS_TOKEN`/stored credentials can reach a device and trigger its chime.
+- **Test Capture** — pulls one live snapshot straight from the camera and runs it through QR decoding, without waiting on a real `person_detected` webhook.
+
+If either fails, the error message directly says which credential to check (access token vs. device ID).

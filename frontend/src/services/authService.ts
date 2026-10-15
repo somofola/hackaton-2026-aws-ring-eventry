@@ -2,6 +2,7 @@
 import api from "./api";
 import { toast } from "@/components/ui/use-toast";
 import { tokenStorage, detectRoleFromPath } from "@/services/tokenStorage";
+import { clearProfileCache } from "@/hooks/useUserProfile";
 
 export interface User {
     id: string;
@@ -56,6 +57,7 @@ export const clearAuthData = async (userType?: string): Promise<void> => {
     const role = userType || "user";
     await tokenStorage.clearToken(role);
     await tokenStorage.clearUser(role);
+    clearProfileCache();
 };
 
 export const clearAllAuthData = async (): Promise<void> => {
@@ -63,6 +65,7 @@ export const clearAllAuthData = async (): Promise<void> => {
     for (const r of ["user", "team", "admin"]) {
         await tokenStorage.clearUser(r);
     }
+    clearProfileCache();
 };
 
 export const getAccessToken = async (userType?: string): Promise<string | null> =>
