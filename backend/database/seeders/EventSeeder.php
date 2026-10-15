@@ -12,8 +12,8 @@ class EventSeeder extends Seeder
             [
                 'title' => 'Tech Conference 2024',
                 'description' => 'Join us for the biggest technology conference of the year featuring industry leaders and cutting-edge innovations.',
-                'date' => '2024-06-15',
-                'time' => '09:00 AM',
+                'start_date' => '2024-06-15',
+                'start_time' => '09:00 AM',
                 'location' => 'San Francisco Convention Center',
                 'max_attendees' => 500,
                 'current_attendees' => 247,
