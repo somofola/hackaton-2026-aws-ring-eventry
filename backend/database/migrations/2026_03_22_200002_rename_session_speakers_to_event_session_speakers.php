@@ -14,15 +14,32 @@ return new class extends Migration
         }
 
         // Drop speaker_id FK if it still exists (check by name)
-        $fks = DB::select(
-            "SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
-             WHERE TABLE_NAME = 'event_session_speakers'
-               AND TABLE_SCHEMA = DATABASE()
-               AND COLUMN_NAME = 'speaker_id'
-               AND REFERENCED_TABLE_NAME IS NOT NULL"
-        );
-        foreach ($fks as $fk) {
-            DB::statement("ALTER TABLE `event_session_speakers` DROP FOREIGN KEY `{$fk->CONSTRAINT_NAME}`");
+        if (Schema::getConnection()->getDriverName() === 'pgsql') {
+            $fks = DB::select(
+                "SELECT tc.constraint_name
+                 FROM information_schema.table_constraints tc
+                 JOIN information_schema.key_column_usage kcu
+                   ON tc.constraint_name = kcu.constraint_name
+                  AND tc.table_schema = kcu.table_schema
+                 WHERE tc.table_name = 'event_session_speakers'
+                   AND tc.constraint_type = 'FOREIGN KEY'
+                   AND kcu.column_name = 'speaker_id'
+                   AND tc.table_schema = current_schema()"
+            );
+            foreach ($fks as $fk) {
+                DB::statement("ALTER TABLE event_session_speakers DROP CONSTRAINT \"{$fk->constraint_name}\"");
+            }
+        } else {
+            $fks = DB::select(
+                "SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
+                 WHERE TABLE_NAME = 'event_session_speakers'
+                   AND TABLE_SCHEMA = DATABASE()
+                   AND COLUMN_NAME = 'speaker_id'
+                   AND REFERENCED_TABLE_NAME IS NOT NULL"
+            );
+            foreach ($fks as $fk) {
+                DB::statement("ALTER TABLE `event_session_speakers` DROP FOREIGN KEY `{$fk->CONSTRAINT_NAME}`");
+            }
         }
 
         // Add user_id if not already added
