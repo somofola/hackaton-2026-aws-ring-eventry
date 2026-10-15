@@ -54,13 +54,20 @@ return new class extends Migration
             $table->dropForeign(['company_id']);
             $table->dropIndex(['uuid']);
             $table->dropUnique(['uuid']);
-            $table->dropColumn([
-                'uuid', 'company_id', 'event_type', 'registration_deadline',
-                'cancellation_policy', 'refund_policy', 'special_instructions',
-                'venue_details', 'parking_info', 'accessibility_info',
-                'contact_email', 'contact_phone', 'website_url',
-                'social_links', 'custom_fields', 'branding_settings'
-            ]);
         });
+
+        $cols = array_values(array_filter([
+            'uuid', 'company_id', 'event_type', 'registration_deadline',
+            'cancellation_policy', 'refund_policy', 'special_instructions',
+            'venue_details', 'parking_info', 'accessibility_info',
+            'contact_email', 'contact_phone', 'website_url',
+            'social_links', 'custom_fields', 'branding_settings',
+        ], fn($col) => Schema::hasColumn('events', $col)));
+
+        if (!empty($cols)) {
+            Schema::table('events', function (Blueprint $table) use ($cols) {
+                $table->dropColumn($cols);
+            });
+        }
     }
 };
