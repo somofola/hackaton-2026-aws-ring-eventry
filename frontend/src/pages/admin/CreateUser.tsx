@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft } from "lucide-react";
+import api from "@/services/api";
 
 const CreateUser = () => {
   const navigate = useNavigate();
@@ -19,14 +20,27 @@ const CreateUser = () => {
     role: "user",
     password: ""
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "User created",
-      description: "New user has been created successfully.",
-    });
-    navigate("/admin/users");
+    setIsSubmitting(true);
+    try {
+      await api.post("/users", formData);
+      toast({
+        title: "User created",
+        description: "New user has been created successfully.",
+      });
+      navigate("/admin/users");
+    } catch (error: any) {
+      toast({
+        title: "Failed to create user",
+        description: error?.response?.data?.message ?? "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -92,7 +106,9 @@ const CreateUser = () => {
                 </Select>
               </div>
               <div className="flex space-x-2 pt-4">
-                <Button type="submit">Create User</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Creating..." : "Create User"}
+                </Button>
                 <Button type="button" variant="outline" onClick={() => navigate("/admin/users")}>
                   Cancel
                 </Button>
