@@ -3,6 +3,7 @@ namespace Database\Seeders;
 
 use App\Models\Payment;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class PaymentSeeder extends Seeder
 {
@@ -45,6 +46,7 @@ class PaymentSeeder extends Seeder
         ];
 
         foreach ($payments as $payment) {
+            $payment['payment_reference'] = 'CC-SUB-EVENT-' . Str::upper(Str::random(12));
             Payment::create($payment);
         }
     }
