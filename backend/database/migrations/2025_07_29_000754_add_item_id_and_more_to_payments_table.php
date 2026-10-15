@@ -18,14 +18,6 @@ return new class extends Migration {
             }
         });
 
-        // Drop foreign key and column if they exist
-        if (Schema::hasColumn('payments', 'subscription_plan_id')) {
-            Schema::table('payments', function (Blueprint $table) {
-                $table->dropForeign(['subscription_plan_id']);
-                $table->dropColumn('subscription_plan_id');
-            });
-        }
-
         // Rename stripe_payment_id to payment_gateway_response if it exists
         if (Schema::hasColumn('payments', 'stripe_payment_id')) {
             Schema::table('payments', function (Blueprint $table) {
@@ -64,12 +56,5 @@ return new class extends Migration {
                 $table->renameColumn('payment_gateway_response', 'stripe_payment_id');
             });
         }
-
-        Schema::table('payments', function (Blueprint $table) {
-            if (!Schema::hasColumn('payments', 'subscription_plan_id')) {
-                $table->unsignedBigInteger('subscription_plan_id')->nullable();
-                $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->onDelete('set null');
-            }
-        });
     }
 };

@@ -31,7 +31,10 @@ Connect to your instance via the Lightsail browser SSH terminal or your local te
 ### 1. Install System Dependencies
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install nginx postgresql postgresql-contrib php8.3-fpm php8.3-pgsql php8.3-curl php8.3-xml php8.3-bcmath php8.3-mbstring php8.3-zip php8.3-sqlite3 php8.3-cli unzip -y
+sudo apt install -y software-properties-common
+sudo add-apt-repository ppa:ondrej/php -y
+sudo apt update
+sudo apt install nginx postgresql postgresql-contrib php8.3-fpm php8.3-pgsql php8.3-curl php8.3-xml php8.3-bcmath php8.3-mbstring php8.3-zip php8.3-sqlite3 php8.3-cli unzip nano -y
 ```
 
 ### 2. Configure Local PostgreSQL Database
@@ -52,7 +55,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 ### 3. Deploy and Initialize Laravel Code
 ```bash
 # Install Composer Globally
-curl -sS https://getcomposer.org | php
+curl -sS https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
 
 # Initialize Project Directory Location
