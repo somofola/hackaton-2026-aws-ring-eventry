@@ -27,8 +27,8 @@ class EventSeeder extends Seeder
             [
                 'title' => 'Design Workshop 2024',
                 'description' => 'A hands-on workshop focused on modern design principles and user experience best practices.',
-                'date' => '2024-07-20',
-                'time' => '10:00 AM',
+                'start_date' => '2024-07-20',
+                'start_time' => '10:00 AM',
                 'location' => 'Design Studio Downtown',
                 'max_attendees' => 50,
                 'current_attendees' => 23,
@@ -42,8 +42,8 @@ class EventSeeder extends Seeder
             [
                 'title' => 'Startup Pitch Day',
                 'description' => 'Watch innovative startups pitch their ideas to a panel of investors and industry experts.',
-                'date' => '2024-08-10',
-                'time' => '02:00 PM',
+                'start_date' => '2024-08-10',
+                'start_time' => '02:00 PM',
                 'location' => 'Innovation Hub',
                 'max_attendees' => 200,
                 'current_attendees' => 0,
