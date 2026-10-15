@@ -1,1 +1,2 @@
+- [2026-10-16 team bio](completed-tasks-2026-10-16.md) — landing page Team section: photo + LinkedIn + bio
 - [2026-10-15 deploy debug](completed-tasks-2026-10-15.md) — Lightsail+Postgres deploy, S3 migration from R2, dead-code cleanup

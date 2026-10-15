@@ -68,10 +68,7 @@ class EventController extends Controller
 
     public function myEvents(Request $request)
     {
-        $user = $request->user();
-
-        $events = Event::where('organizer_id', $user->id)
-            ->with(['speakers.user', 'sessions', 'exhibitors', 'teamMembers', 'ticketCategories'])
+        $events = Event::with(['speakers.user', 'sessions', 'exhibitors', 'teamMembers', 'ticketCategories'])
             ->orderBy('start_date', 'desc')
             ->get();
 
