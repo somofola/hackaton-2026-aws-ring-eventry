@@ -172,6 +172,11 @@ class UserController extends Controller
                 $filename  = time() . '_' . (string) Str::uuid() . '.' . $extension;
 
                 $path = $request->file('profile_image_file')->storeAs('profile', $filename, 's3');
+
+                if (!$path) {
+                    return response()->json(['message' => 'File upload failed — S3 rejected the upload. Check AWS credentials/bucket config.'], 500);
+                }
+
                 $user->profile_image_url = $disk->url($path);
             }
         } catch (\Exception $e) {
