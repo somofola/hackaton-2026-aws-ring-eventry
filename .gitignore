@@ -4,3 +4,4 @@ STREAMLINE_PLAN.md
 .claude/*.local.json
 eventry-s3-app-user_accessKeys.csv
 BUGS_RESOLVED.md
+memory/
