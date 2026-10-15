@@ -246,8 +246,10 @@ class AdminController extends Controller
 
                 // Delete old logo if stored on S3
                 if ($user->profile_image_url) {
-                    $oldPath = parse_url($user->profile_image_url, PHP_URL_PATH);
-                    $disk->delete(ltrim($oldPath, '/'));
+                    $oldPath = ltrim(parse_url($user->profile_image_url, PHP_URL_PATH) ?? '', '/');
+                    if ($oldPath !== '') {
+                        $disk->delete($oldPath);
+                    }
                 }
 
                 $extension = $request->file('profile_image_file')->getClientOriginalExtension();
