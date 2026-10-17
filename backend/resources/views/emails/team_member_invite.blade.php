@@ -48,6 +48,6 @@
   </div>
 
   <p style="margin:0;font-size:13px;color:#9ca3af;">
-    Questions? Contact <a href="mailto:support@eventry.app" style="color:#6b7280;">support@eventry.app</a>.
+    Questions? Contact <a href="mailto:{{ config('app.support_email') }}" style="color:#6b7280;">{{ config('app.support_email') }}</a>.
   </p>
 @endsection

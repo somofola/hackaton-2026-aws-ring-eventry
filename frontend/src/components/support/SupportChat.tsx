@@ -1,10 +1,11 @@
 import React from "react";
+import { SUPPORT_EMAIL } from "@/lib/brand";
 
 const SupportChat: React.FC = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <a
-        href="mailto:support@eventry.app"
+        href={`mailto:${SUPPORT_EMAIL}`}
         className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-blue-50 hover:border-blue-200 transition-colors group"
       >
         <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
@@ -17,7 +18,7 @@ const SupportChat: React.FC = () => {
         <div className="min-w-0">
           <p className="text-xs text-gray-500 leading-none mb-0.5">Email</p>
           <p className="text-sm font-medium text-gray-800 truncate group-hover:text-blue-700">
-            support@eventry.app
+            {SUPPORT_EMAIL}
           </p>
         </div>
       </a>

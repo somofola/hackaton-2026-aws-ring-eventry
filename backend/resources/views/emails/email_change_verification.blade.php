@@ -31,6 +31,6 @@
 
   <p style="margin:0;font-size:13px;color:#9ca3af;">
     For security, never share this link with anyone. Need help?
-    <a href="mailto:support@eventry.app" style="color:#0060D4;text-decoration:none;">Contact support</a>
+    <a href="mailto:{{ config('app.support_email') }}" style="color:#0060D4;text-decoration:none;">Contact support</a>
   </p>
 @endsection

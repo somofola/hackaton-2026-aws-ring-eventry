@@ -53,7 +53,7 @@ class ContactController extends Controller
         ]);
 
         try {
-            $to = config('mail.support_address', env('SUPPORT_EMAIL', 'support@eventry.app'));
+            $to = config('app.support_email');
             Mail::to($to)->queue(new ContactFormMail($contact));
         } catch (\Throwable $e) {
             Log::error('Contact form mail failed', ['id' => $contact->id, 'err' => $e->getMessage()]);

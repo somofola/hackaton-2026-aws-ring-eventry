@@ -99,7 +99,7 @@
         <img class="main-img" src="/logo-lite.png" alt="">
       </div>
       <div class="row lite btndiv">
-        <a href="https://eventry.app/" target="_self" class="btn btn-lg btn-outline-light download-btn">Homepage</a>
+        <a href="{{ config('app.frontend_url') }}" target="_self" class="btn btn-lg btn-outline-light download-btn">Homepage</a>
       </div>
 
     </div>

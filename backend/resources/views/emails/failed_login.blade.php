@@ -70,6 +70,6 @@
 
   <p style="margin:0;font-size:13px;color:#9ca3af;">
     For security questions, contact
-    <a href="mailto:support@eventry.app" style="color:#0060D4;text-decoration:none;">support@eventry.app</a>
+    <a href="mailto:{{ config('app.support_email') }}" style="color:#0060D4;text-decoration:none;">{{ config('app.support_email') }}</a>
   </p>
 @endsection

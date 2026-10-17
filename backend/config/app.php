@@ -58,6 +58,8 @@ return [
 
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
 
+    'support_email' => env('SUPPORT_EMAIL', 'support@' . (parse_url(env('FRONTEND_URL', 'http://localhost:3000'), PHP_URL_HOST) ?? 'localhost')),
+
     'asset_url' => env('ASSET_URL'),
 
     /*

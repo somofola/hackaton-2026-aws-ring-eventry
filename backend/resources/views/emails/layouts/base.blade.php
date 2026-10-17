@@ -62,9 +62,9 @@
                     &copy; {{ date('Y') }} Eventry. All rights reserved.
                   </td>
                   <td align="right" style="font-size:11px;color:#9ca3af;">
-                    <a href="mailto:support@eventry.app" style="color:#9ca3af;text-decoration:none;">support@eventry.app</a>
+                    <a href="mailto:{{ config('app.support_email') }}" style="color:#9ca3af;text-decoration:none;">{{ config('app.support_email') }}</a>
                     &nbsp;&middot;&nbsp;
-                    <a href="https://eventry.app" style="color:#9ca3af;text-decoration:none;">https://eventry.app</a>
+                    <a href="{{ config('app.frontend_url') }}" style="color:#9ca3af;text-decoration:none;">{{ config('app.frontend_url') }}</a>
                   </td>
                 </tr>
               </table>

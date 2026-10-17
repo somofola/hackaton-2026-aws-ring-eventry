@@ -156,7 +156,7 @@
 
   <div class="footer">
     <span>Thank you for choosing Eventry!</span>
-    <span>support@eventry.app &middot; eventry.app</span>
+    <span>{{ config('app.support_email') }} &middot; eventry.app</span>
   </div>
 
 </body>
