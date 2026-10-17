@@ -57,6 +57,7 @@ import TeamSettings from "./pages/team/TeamSettings";
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
+import ArchivedUsers from "./pages/admin/ArchivedUsers";
 import UserDetail from "./pages/admin/UserDetail";
 import CreateUser from "./pages/admin/CreateUser";
 import EditUser from "./pages/admin/EditUser";
@@ -143,6 +144,7 @@ const AppRouter = () => (
           <Route path="/admin" element={<PrivateRoute user_type="admin" />}>
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<UserManagement />} />
+            <Route path="users/archived" element={<ArchivedUsers />} />
             <Route path="users/create" element={<CreateUser />} />
             <Route path="users/:id" element={<UserDetail />} />
             <Route path="users/:id/edit" element={<EditUser />} />

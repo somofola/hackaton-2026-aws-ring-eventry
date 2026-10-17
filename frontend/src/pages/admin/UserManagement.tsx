@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/components/ui/use-toast";
-import { Eye, Edit, UserX, UserPlus, Search } from "lucide-react";
+import { Eye, Edit, UserX, UserPlus, Search, Archive } from "lucide-react";
 import ListPagination from "@/components/ui/list-pagination";
 import api from "@/services/api";
 
@@ -85,7 +85,7 @@ const UserManagement = () => {
   const handleDeleteUser = async (userId: string) => {
     try {
       await api.delete(`/users/${userId}`);
-      toast({ title: "User deleted", description: "User has been successfully removed." });
+      toast({ title: "User deleted", description: "User and their event enrollments have been archived." });
       setAllUsers((prev) => prev.filter((u) => u.id !== userId));
       setDeleteTarget(null);
     } catch {
@@ -124,10 +124,16 @@ const UserManagement = () => {
             <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
             <p className="text-gray-600 mt-1">Manage user accounts and permissions</p>
           </div>
-          <Button onClick={() => navigate("/admin/users/create")}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Create User
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/admin/users/archived")}>
+              <Archive className="mr-2 h-4 w-4" />
+              Archived Users
+            </Button>
+            <Button onClick={() => navigate("/admin/users/create")}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Create User
+            </Button>
+          </div>
         </div>
 
         <Card>
@@ -277,7 +283,7 @@ const UserManagement = () => {
             <AlertDialogDescription>
               {deleteTarget && (
                 <>
-                  <strong>{deleteTarget.name}</strong> ({deleteTarget.email}) will be permanently removed. This cannot be undone.
+                  <strong>{deleteTarget.name}</strong> ({deleteTarget.email}) and their event enrollments will be archived, then removed from active accounts.
                 </>
               )}
             </AlertDialogDescription>

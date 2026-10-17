@@ -15,6 +15,8 @@ use App\Mail\PasswordChangedMail;
 use App\Mail\EmailChangeVerificationMail;
 use App\Mail\EmailChangeNotificationMail;
 use App\Services\PushNotificationService;
+use App\Models\AccountDeletionArchive;
+use App\Models\EventEnrollment;
 
 class UserController extends Controller
 {
@@ -204,9 +206,36 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        $enrollments = EventEnrollment::where('user_id', $user->id)->get();
+
+        AccountDeletionArchive::create([
+            'original_user_id' => $user->id,
+            'email' => $user->email,
+            'payload' => [
+                'user' => $user->toArray(),
+                'event_enrollments' => $enrollments->toArray(),
+            ],
+            'purge_at' => now()->addDays((int) env('ACCOUNT_ARCHIVE_RETENTION_DAYS', 365)),
+        ]);
+
+        // EventEnrollments cascade via FK ON DELETE CASCADE, already snapshotted above.
         $user->delete();
 
-        return response()->json(['message' => 'User deleted successfully']);
+        return response()->json(['message' => 'User deleted and archived successfully']);
+    }
+
+    /**
+     * Admin-only: list archived (deleted) users with their snapshotted event enrollments.
+     */
+    public function archivedUsers(Request $request)
+    {
+        $archives = AccountDeletionArchive::query()
+            ->when($request->search, fn($query) =>
+                $query->where('email', 'like', "%{$request->search}%"))
+            ->orderBy('created_at', 'desc')
+            ->paginate($request->per_page ?? 15);
+
+        return response()->json($archives);
     }
 
     /**

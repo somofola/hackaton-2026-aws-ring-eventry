@@ -66,6 +66,7 @@ Route::middleware(['auth:sanctum', 'role:admin,super-admin'])->group(function ()
     // Instant broadcast (marketing, alerts, informational)
     Route::post('/notifications/broadcast', [NotificationController::class, 'broadcast']);
     Route::apiResource('/users', UserController::class);
+    Route::get('/archived-users', [UserController::class, 'archivedUsers']);
     Route::post('/users/{user}/block', [UserController::class, 'toggleBlock'])->whereNumber('user');
     Route::post('/users/{user}/legal-hold', [UserController::class, 'setLegalHold'])->whereNumber('user');
     // 'show' is excluded here — it is registered in the shared group above.
