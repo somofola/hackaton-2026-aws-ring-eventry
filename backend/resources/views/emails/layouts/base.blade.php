@@ -25,7 +25,7 @@
                       <tr>
                         <td style="vertical-align:middle;padding-right:12px;">
                           <img
-                            src="https://static.eventry.app/generic/icon.jpg"
+                            src="{{ config('app.frontend_url') }}/logo.png"
                             alt="Eventry"
                             width="50" height="50"
                             style="display:block;border-radius:8px;object-fit:contain;border-radius:10%"
