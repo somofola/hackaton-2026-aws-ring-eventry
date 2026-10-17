@@ -1,8 +1,14 @@
-STREAMLINE_PLAN.md
 *.pem
+*.mhtml
 *claude*
+
 .claude/*.local.json
+
 eventry-s3-app-user_accessKeys.csv
 eventry-ring-app-credentials.csv
+
+STREAMLINE_PLAN.md
 BUGS_RESOLVED.md
+
 memory/
+

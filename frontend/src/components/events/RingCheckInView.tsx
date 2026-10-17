@@ -1,7 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
+import QrScanner from "qr-scanner";
+import QrScannerWorkerPath from "qr-scanner/qr-scanner-worker.min.js?url";
+
+// Falls back to this worker on browsers without the native BarcodeDetector API
+// (e.g. Firefox/Safari); Chrome/Edge use BarcodeDetector directly and never load it.
+QrScanner.WORKER_PATH = QrScannerWorkerPath;
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Video, VideoOff, CheckCircle, Loader2, QrCode } from "lucide-react";
+import { Video, VideoOff, CheckCircle, Loader2, QrCode, Webcam } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   openRingWhep,
@@ -9,6 +15,8 @@ import {
   testRingCapture,
   checkInByQr,
 } from "@/services/eventService";
+
+type CaptureSource = "ring" | "webcam";
 
 interface RingCheckInViewProps {
   eventUuid: string;
@@ -41,6 +49,7 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
   const [status, setStatus] = useState<"idle" | "connecting" | "live" | "matched" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [matchedName, setMatchedName] = useState<string | null>(null);
+  const [source, setSource] = useState<CaptureSource>("ring");
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
@@ -49,6 +58,7 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
   const refreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stoppedRef = useRef(false);
   const lastErrorRef = useRef<string>("");
+  const webcamStreamRef = useRef<MediaStream | null>(null);
 
   const { toast } = useToast();
 
@@ -88,11 +98,18 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     }
   };
 
+  const stopWebcam = () => {
+    webcamStreamRef.current?.getTracks().forEach((track) => track.stop());
+    webcamStreamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+  };
+
   const teardown = async () => {
     stoppedRef.current = true;
     stopPolling();
     stopRefreshLoop();
     await closeCurrentSession();
+    stopWebcam();
   };
 
   /** Opens one WHEP session + RTCPeerConnection. Returns true on success. */
@@ -202,7 +219,77 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     }, CAPTURE_POLL_INTERVAL_MS);
   };
 
+  const pollForQrWebcam = () => {
+    pollRef.current = setInterval(async () => {
+      if (stoppedRef.current || !videoRef.current) return;
+
+      try {
+        const { data: qrCode } = await QrScanner.scanImage(videoRef.current, {
+          returnDetailedScanResult: true,
+        });
+
+        stopPolling();
+
+        try {
+          const res = await checkInByQr(eventUuid, qrCode, checkedInBy);
+          setMatchedName((res?.user_name as string) || "Attendee");
+          setStatus("matched");
+          onCheckedIn?.(res);
+          toast({ title: "Checked in!", description: "Attendee matched via webcam QR capture." });
+          await teardown();
+        } catch (err) {
+          const message =
+            (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+            "Check-in failed for the decoded QR code";
+          toast({ title: "Check-in failed", description: message, variant: "destructive" });
+          // Keep polling — could've been a stale/already-checked-in badge caught mid-frame.
+          pollForQrWebcam();
+        }
+      } catch {
+        // no QR code in this frame — keep polling silently
+      }
+    }, CAPTURE_POLL_INTERVAL_MS);
+  };
+
+  /**
+   * Dev-playground alternative to the Ring Playground WHEP flow — uses the
+   * laptop's own camera so the check-in demo can be run end-to-end without a
+   * Ring Playground access token or any Ring account at all.
+   */
+  const startWebcam = async () => {
+    stoppedRef.current = false;
+    setStatus("connecting");
+    setErrorMessage("");
+    setMatchedName(null);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+        audio: false,
+      });
+      webcamStreamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      setStatus("live");
+      pollForQrWebcam();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Could not access webcam — check browser permissions.";
+      setErrorMessage(message);
+      toast({ title: "Webcam error", description: message, variant: "destructive" });
+      setStatus("error");
+      await teardown();
+    }
+  };
+
   const start = async () => {
+    if (source === "webcam") {
+      await startWebcam();
+      return;
+    }
+
     stoppedRef.current = false;
     setStatus("connecting");
     setErrorMessage("");
@@ -245,9 +332,31 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
         </h3>
       </div>
       <p className="text-sm text-gray-500">
-        Opens a live view on the Ring Playground device and watches for an attendee's QR code —
-        no physical camera required.
+        {source === "ring"
+          ? "Opens a live view on the Ring Playground device and watches for an attendee's QR code — no physical camera required."
+          : "Uses this laptop's webcam to simulate a Ring device, for demoing check-in without a Ring Playground token or account."}
       </p>
+
+      {(status === "idle" || status === "error") && (
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant={source === "ring" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSource("ring")}
+          >
+            <Video className="mr-2 h-3.5 w-3.5" /> Ring Playground
+          </Button>
+          <Button
+            type="button"
+            variant={source === "webcam" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSource("webcam")}
+          >
+            <Webcam className="mr-2 h-3.5 w-3.5" /> Laptop Webcam (dev playground)
+          </Button>
+        </div>
+      )}
 
       <div className="flex flex-col items-center">
         <div className="relative bg-black rounded-lg overflow-hidden w-full max-w-sm aspect-square mb-4">
@@ -308,7 +417,7 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
 
         <div className="flex gap-2">
           {status === "idle" || status === "error" || status === "matched" ? (
-            <Button onClick={start} disabled={!ringDeviceId}>
+            <Button onClick={start} disabled={source === "ring" && !ringDeviceId}>
               <Video className="mr-2 h-4 w-4" /> Start Live Check-in
             </Button>
           ) : (
