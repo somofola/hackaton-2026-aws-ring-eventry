@@ -252,7 +252,8 @@ const UserManagement = () => {
                             variant="destructive"
                             onClick={() => setDeleteTarget(user)}
                           >
-                            Delete
+                            <Archive className="mr-1.5 h-4 w-4" />
+                            Archive
                           </Button>
                         </div>
                       </TableCell>
@@ -279,7 +280,7 @@ const UserManagement = () => {
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this user?</AlertDialogTitle>
+            <AlertDialogTitle>Archive this user?</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteTarget && (
                 <>
@@ -291,7 +292,7 @@ const UserManagement = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={() => deleteTarget && handleDeleteUser(deleteTarget.id)}>
-              Delete
+              Archive
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

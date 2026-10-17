@@ -218,6 +218,11 @@ class UserController extends Controller
             'purge_at' => now()->addDays((int) env('ACCOUNT_ARCHIVE_RETENTION_DAYS', 365)),
         ]);
 
+        // Payments are financial records — retained (not cascaded), FK set
+        // null on delete. Snapshot the email first since user_id won't
+        // resolve to anything after the delete below.
+        \App\Models\Payment::where('user_id', $user->id)->update(['archived_user_email' => $user->email]);
+
         // EventEnrollments cascade via FK ON DELETE CASCADE, already snapshotted above.
         $user->delete();
 
@@ -236,6 +241,18 @@ class UserController extends Controller
             ->paginate($request->per_page ?? 15);
 
         return response()->json($archives);
+    }
+
+    /**
+     * Admin-only: permanently purge one archived user's snapshot ahead of its
+     * scheduled purge_at. Payments are never part of the archive payload and
+     * are untouched by this — they're retained independently (see destroy()).
+     */
+    public function purgeArchivedUser(AccountDeletionArchive $archivedUser)
+    {
+        $archivedUser->delete();
+
+        return response()->json(['message' => 'Archived user data permanently deleted']);
     }
 
     /**

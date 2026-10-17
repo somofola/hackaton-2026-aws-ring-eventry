@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/components/ui/use-toast";
+import { ArrowLeft, Search, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import ListPagination from "@/components/ui/list-pagination";
 import api from "@/services/api";
 
@@ -49,6 +54,8 @@ const ArchivedUsers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [purgeTarget, setPurgeTarget] = useState<ArchivedUser | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const load = async () => {
@@ -70,6 +77,17 @@ const ArchivedUsers = () => {
     e.preventDefault();
     setCurrentPage(1);
     setSearch(searchInput.trim());
+  };
+
+  const handlePurge = async (id: number) => {
+    try {
+      await api.delete(`/archived-users/${id}`);
+      toast({ title: "Permanently deleted", description: "Archived user data has been purged." });
+      setArchives((prev) => prev.filter((a) => a.id !== id));
+      setPurgeTarget(null);
+    } catch {
+      toast({ title: "Error", description: "Failed to permanently delete archive.", variant: "destructive" });
+    }
   };
 
   return (
@@ -120,6 +138,7 @@ const ArchivedUsers = () => {
                       <TableHead>Deleted At</TableHead>
                       <TableHead>Purge At</TableHead>
                       <TableHead></TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -148,10 +167,20 @@ const ArchivedUsers = () => {
                                 </Button>
                               )}
                             </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => setPurgeTarget(a)}
+                              >
+                                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                                Delete Permanently
+                              </Button>
+                            </TableCell>
                           </TableRow>
                           {isOpen && enrollments.length > 0 && (
                             <TableRow>
-                              <TableCell colSpan={7} className="bg-gray-50">
+                              <TableCell colSpan={8} className="bg-gray-50">
                                 <div className="text-xs text-gray-600 space-y-1 py-2">
                                   {enrollments.map((e) => (
                                     <div key={e.id} className="flex gap-4">
@@ -180,6 +209,29 @@ const ArchivedUsers = () => {
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={!!purgeTarget} onOpenChange={(open) => !open && setPurgeTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Permanently delete this archive?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {purgeTarget && (
+                <>
+                  <strong>{purgeTarget.payload?.user?.name ?? purgeTarget.email}</strong>'s archived
+                  profile and event enrollment snapshot will be permanently erased. Payments are not
+                  affected and are never part of this archive. This cannot be undone.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => purgeTarget && handlePurge(purgeTarget.id)}>
+              Delete Permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };
