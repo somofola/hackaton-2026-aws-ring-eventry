@@ -11,7 +11,7 @@ import {
 import QRCode from "react-qr-code";
 import ExternalRegistrationModal from "@/components/events/ExternalRegistrationModal";
 import { ExternalRegistration } from "@/types";
-import { BRAND_NAME } from "@/lib/brand";
+import { BRAND_NAME, SUPPORT_EMAIL } from "@/lib/brand";
 import { uploadFaceOptIn } from "@/services/eventService";
 import { useToast } from "@/hooks/use-toast";
 import FaceCaptureDialog from "@/components/events/FaceCaptureDialog";
@@ -461,7 +461,7 @@ const EventConfirmation = () => {
                     <img src="/logo_lite.png" alt="Eventry" className="h-5 w-auto object-contain" />
                     <div className="text-right text-white/80" style={{ fontSize: 9, lineHeight: 1.5 }}>
                       <div>For enquiries &amp; support</div>
-                      <div>support@eventry.app &nbsp;|&nbsp; eventry.app</div>
+                      <div>{SUPPORT_EMAIL} &nbsp;|&nbsp; {SUPPORT_EMAIL.split("@")[1]}</div>
                     </div>
                   </div>
                 </div>

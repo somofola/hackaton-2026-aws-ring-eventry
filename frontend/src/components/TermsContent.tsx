@@ -135,7 +135,7 @@ const TermsContent = () => (
                             If you have questions about these Terms of Service, please contact us:
                         </p>
                         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                            <p><strong>Email:</strong> support@eventry.app</p>
+                            <p><strong>Email:</strong> {SUPPORT_EMAIL}</p>
                             {/* <p><strong>Address:</strong> 34 Ikorodu Rd, Jibowu, Lagos 101245, Lagos</p> */}
                         </div>
                     </section>

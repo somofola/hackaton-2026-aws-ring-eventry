@@ -1,3 +1,5 @@
+import { SUPPORT_EMAIL } from "@/lib/brand";
+
 const TermsContent = () => (
 <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
@@ -110,7 +112,7 @@ const TermsContent = () => (
                   please contact us at:
                 </p>
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <p><strong>Email:</strong> support@eventry.app</p>
+                  <p><strong>Email:</strong> {SUPPORT_EMAIL}</p>
                   {/* <p><strong>Address:</strong> 34 Ikorodu Rd, Jibowu, Lagos 101245, Lagos</p> */}
                 </div>
               </section>
