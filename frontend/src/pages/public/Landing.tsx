@@ -180,18 +180,48 @@ const Landing: React.FC = () => {
               {BRAND_NAME} pairs a Ring smart-device camera with AWS facial recognition to check attendees
               into an event automatically — no scanning, no queueing, no app required at the door.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/register">
+            <div className="flex flex-row gap-3 sm:gap-4">
+              <Link to="/register" className="flex-1 sm:flex-none">
                 <Button size="lg" className="bg-gradient-to-r from-yellow-300 to-orange-300 text-gray-900 font-semibold hover:from-yellow-200 hover:to-orange-200 shadow-xl shadow-black/30 group w-full sm:w-auto">
                   Get Started
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <a href="#events">
+              <a href="#events" className="flex-1 sm:flex-none">
                 <Button size="lg" variant="outline" className="border-2 border-white/40 backdrop-blur-sm bg-white/5 text-white hover:bg-white/10 hover:border-white/60 w-full sm:w-auto">
                   View Events
                 </Button>
               </a>
+            </div>
+
+            <div className="mt-10">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-white/70 mb-3">
+                Entered tracks
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  {
+                    t: "Ring (Primary track)",
+                    d: "New app extending Ring APIs/SDKs — access control, business systems, IoT home automation, accessibility, caretaking. No physical Ring device required.",
+                  },
+                  {
+                    t: "AWS Builder (Mini challenge)",
+                    d: "Uses AWS services (Bedrock, AgentCore, Strands SDK, SageMaker, etc.) with documented integrations.",
+                  },
+                  {
+                    t: "Open Source (Mini challenge)",
+                    d: "New open-source project/contribution shipped during the hackathon window, alongside the primary-track submission.",
+                  },
+                ].map((track) => (
+                  <div
+                    key={track.t}
+                    className="rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 p-4"
+                  >
+                    <p className="text-sm font-semibold text-white mb-1">{track.t}</p>
+                    <p className="text-xs text-white/80 leading-relaxed">{track.d}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
