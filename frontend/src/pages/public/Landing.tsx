@@ -202,15 +202,15 @@ const Landing: React.FC = () => {
                 {[
                   {
                     t: "Ring (Primary track)",
-                    d: "New app extending Ring APIs/SDKs — access control, business systems, IoT home automation, accessibility, caretaking. No physical Ring device required.",
+                    d: "Event access control & business systems improvement",
                   },
                   {
                     t: "AWS Builder (Mini challenge)",
-                    d: "Uses AWS services (Bedrock, AgentCore, Strands SDK, SageMaker, etc.) with documented integrations.",
+                    d: "Uses AWS services Bedrock, Rekognition, Amplify, Lightsail, S3.",
                   },
                   {
                     t: "Open Source (Mini challenge)",
-                    d: "New open-source project/contribution shipped during the hackathon window, alongside the primary-track submission.",
+                    d: "Open-source project available via GitHub",
                   },
                 ].map((track) => (
                   <div
