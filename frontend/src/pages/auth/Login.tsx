@@ -193,9 +193,9 @@ const Login = () => {
 
             <div className="mt-6 grid grid-cols-2 gap-3">
               <SocialLoginButton provider="google" onClick={() => handleSocialLogin("google")} />
-              <SocialLoginButton provider="microsoft" onClick={() => handleSocialLogin("microsoft")} />
+              {/* <SocialLoginButton provider="microsoft" onClick={() => handleSocialLogin("microsoft")} /> */}
               <SocialLoginButton provider="linkedin" onClick={() => handleSocialLogin("linkedin")} />
-              <SocialLoginButton provider="apple" onClick={() => handleSocialLogin("apple")} />
+              {/* <SocialLoginButton provider="apple" onClick={() => handleSocialLogin("apple")} /> */}
             </div>
           </div>
         </div>

@@ -308,9 +308,9 @@ const Register = () => {
 
             <div className="mt-6 grid grid-cols-2 gap-3">
               <SocialLoginButton provider="google" onClick={() => handleSocialRegister("google")} />
-              <SocialLoginButton provider="microsoft" onClick={() => handleSocialRegister("microsoft")} />
+              {/* <SocialLoginButton provider="microsoft" onClick={() => handleSocialRegister("microsoft")} /> */}
               <SocialLoginButton provider="linkedin" onClick={() => handleSocialRegister("linkedin")} />
-              <SocialLoginButton provider="apple" onClick={() => handleSocialRegister("apple")} />
+              {/* <SocialLoginButton provider="apple" onClick={() => handleSocialRegister("apple")} /> */}
             </div>
           </div>
         </div>
