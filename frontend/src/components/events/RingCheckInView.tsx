@@ -236,6 +236,14 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
       if (status === 404) {
         // no confident match in this frame — normal, keep polling
         setNoMatchStreak((n) => n + 1);
+      } else if (status === 409) {
+        stopPolling();
+        const enrollment = (err as { response?: { data?: { enrollment?: { user_name?: string } } } })?.response?.data?.enrollment;
+        const name = enrollment?.user_name || "Attendee";
+        setMatchedName(name);
+        setStatus("matched");
+        toast({ title: "Already checked in", description: `${name} is already checked in`, variant: "destructive" });
+        await teardown();
       } else {
         const message =
           (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -244,6 +252,36 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
       }
     } finally {
       processingRef.current = false;
+    }
+  };
+
+  /** Shared outcome handling for a decoded QR hitting check-in/qr — names the attendee on a 409 instead of a generic failure toast. */
+  const handleQrResult = async (qrCode: string, ringDeviceIdForCall: string | undefined, successDescription: string, retry: () => void) => {
+    try {
+      const res = await checkInByQr(eventUuid, qrCode, checkedInBy, ringDeviceIdForCall);
+      setMatchedName((res?.user_name as string) || "Attendee");
+      setStatus("matched");
+      onCheckedIn?.(res);
+      toast({ title: "Checked in!", description: successDescription });
+      await teardown();
+    } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 409) {
+        stopPolling();
+        const enrollment = (err as { response?: { data?: { enrollment?: { user_name?: string } } } })?.response?.data?.enrollment;
+        const name = enrollment?.user_name || "Attendee";
+        setMatchedName(name);
+        setStatus("matched");
+        toast({ title: "Already checked in", description: `${name} is already checked in`, variant: "destructive" });
+        await teardown();
+        return;
+      }
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Check-in failed for the decoded QR code";
+      toast({ title: "Check-in failed", description: message, variant: "destructive" });
+      // Keep polling — could've been a stale/already-checked-in badge caught mid-frame.
+      retry();
     }
   };
 
@@ -256,22 +294,7 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
 
         if (result.success && result.qr_result) {
           stopPolling();
-
-          try {
-            const res = await checkInByQr(eventUuid, result.qr_result, checkedInBy, ringDeviceId);
-            setMatchedName((res?.user_name as string) || "Attendee");
-            setStatus("matched");
-            onCheckedIn?.(res);
-            toast({ title: "Checked in!", description: "Attendee matched via Ring QR capture." });
-            await teardown();
-          } catch (err) {
-            const message =
-              (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-              "Check-in failed for the decoded QR code";
-            toast({ title: "Check-in failed", description: message, variant: "destructive" });
-            // Keep polling — could've been a stale/already-checked-in badge caught mid-frame.
-            pollForQr();
-          }
+          await handleQrResult(result.qr_result, ringDeviceId, "Attendee matched via Ring QR capture.", pollForQr);
         }
       } catch {
         // transient snapshot miss — keep polling silently
@@ -304,22 +327,7 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
         });
 
         stopPolling();
-
-        try {
-          const res = await checkInByQr(eventUuid, qrCode, checkedInBy);
-          setMatchedName((res?.user_name as string) || "Attendee");
-          setStatus("matched");
-          onCheckedIn?.(res);
-          toast({ title: "Checked in!", description: "Attendee matched via webcam QR capture." });
-          await teardown();
-        } catch (err) {
-          const message =
-            (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-            "Check-in failed for the decoded QR code";
-          toast({ title: "Check-in failed", description: message, variant: "destructive" });
-          // Keep polling — could've been a stale/already-checked-in badge caught mid-frame.
-          pollForQrWebcam();
-        }
+        await handleQrResult(qrCode, undefined, "Attendee matched via webcam QR capture.", pollForQrWebcam);
       } catch {
         // no QR code in this frame — keep polling silently
       }
