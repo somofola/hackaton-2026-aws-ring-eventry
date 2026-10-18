@@ -17,7 +17,7 @@ interface Enrollment {
   event: {
     id: number;
     title: string;
-    date: string;
+    start_date: string;
     location: string;
     price: number | null;
     status: string;
@@ -53,8 +53,8 @@ const Dashboard = () => {
           (e) => e.checked_in || e.status === "attended"
         ).length;
         const upcomingEnrollments = enrollments
-          .filter((e) => e.event && e.event.date >= today && e.event.status === "live")
-          .sort((a, b) => (a.event!.date > b.event!.date ? 1 : -1));
+          .filter((e) => e.event && e.event.start_date >= today && e.event.status === "live")
+          .sort((a, b) => (a.event!.start_date > b.event!.start_date ? 1 : -1));
 
         setStats({
           eventsAttended,
@@ -196,7 +196,7 @@ const Dashboard = () => {
                         <div>
                           <p className="font-medium text-sm">{enrollment.event!.title}</p>
                           <p className="text-xs text-gray-500">
-                            {formatDate(enrollment.event!.date)}
+                            {formatDate(enrollment.event!.start_date)}
                             {enrollment.event!.location ? ` · ${enrollment.event!.location}` : ""}
                           </p>
                         </div>
