@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ScanFace, Radio, Ticket, ShieldCheck, Calendar, MapPin, Users,
-  ArrowRight, Sparkles, Github, Mail, Boxes, Cpu, Cloud, Code2, Linkedin, Server, Database, Brain, Globe,
+  ArrowRight, Sparkles, Github, Mail, Boxes, Cpu, Cloud, Code2, Linkedin, Server, Database, Brain, Globe, BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -122,13 +122,19 @@ const Landing: React.FC = () => {
             </span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link
-              to="/guide"
-              className={`hidden sm:inline text-sm font-medium transition-colors ${
-                scrolled ? "text-gray-600 hover:text-primary" : "text-white/90 hover:text-white"
-              }`}
-            >
-              Guide
+            <Link to="/guide" aria-label="Guide">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`gap-1.5 px-2 sm:px-3 ${
+                  scrolled
+                    ? "text-gray-600 hover:text-primary hover:bg-primary/5"
+                    : "text-white/90 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                <BookOpen className="h-4 w-4" />
+                <span className="hidden sm:inline">Guide</span>
+              </Button>
             </Link>
             <Link to="/login">
               <Button
