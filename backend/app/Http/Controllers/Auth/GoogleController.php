@@ -97,6 +97,14 @@ class GoogleController extends Controller
                 }
             }
 
+            // SECURITY: role column is nullable at DB level (legacy/migrated rows);
+            // never let a null role reach TokenCookie/response. Flag it — a null
+            // role on an existing account means data needs backfilling.
+            if (!$user->role) {
+                Log::warning('SSO login: user has null role', ['user_id' => $user->id, 'provider' => 'google']);
+                $user->role = 'user';
+            }
+
             // Log in the user
             Auth::login($user);
 

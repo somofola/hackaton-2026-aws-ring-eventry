@@ -37,8 +37,12 @@ class TokenCookie
         return 'auth_' . $role . '_token';
     }
 
-    public static function make(string $token, string $role): Cookie
+    public static function make(string $token, ?string $role): Cookie
     {
+        // SECURITY/F-03 note: role column is nullable at DB level (legacy/migrated
+        // rows). Never trust caller-supplied role beyond ROLES allowlist — name()
+        // already does that — this just stops a null/garbage role from fataling.
+        $role = $role ?: 'user';
         // Build the Symfony Cookie directly so Laravel's session.domain default
         // doesn't override our intent (host-only on dev, configurable on prod).
         return new Cookie(

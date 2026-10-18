@@ -138,6 +138,13 @@ class AppleController extends Controller
                 ]);
             }
 
+            // SECURITY: role column is nullable at DB level (legacy/migrated rows);
+            // never let a null role reach the handoff cache/redirect. Flag it.
+            if (!$user->role) {
+                Log::warning('SSO login: user has null role', ['user_id' => $user->id, 'provider' => 'apple']);
+                $user->role = 'user';
+            }
+
             Auth::login($user);
 
             $handoffToken = Str::random(64);
