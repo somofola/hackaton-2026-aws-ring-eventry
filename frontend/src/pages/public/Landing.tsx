@@ -122,6 +122,14 @@ const Landing: React.FC = () => {
             </span>
           </Link>
           <div className="flex items-center gap-3">
+            <Link
+              to="/guide"
+              className={`hidden sm:inline text-sm font-medium transition-colors ${
+                scrolled ? "text-gray-600 hover:text-primary" : "text-white/90 hover:text-white"
+              }`}
+            >
+              Guide
+            </Link>
             <Link to="/login">
               <Button
                 variant={scrolled ? "ghost" : "outline"}
@@ -556,6 +564,7 @@ const Landing: React.FC = () => {
             >
               <Linkedin className="h-5 w-5" />
             </a>
+            <Link to="/guide" className="text-gray-400 hover:text-white transition-colors">User &amp; admin guide</Link>
             <Link to="/login" className="text-gray-400 hover:text-white transition-colors">Login to the platform</Link>
           </div>
         </div>
