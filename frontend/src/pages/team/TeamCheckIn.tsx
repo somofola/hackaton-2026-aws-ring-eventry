@@ -6,13 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RingCheckInView from "@/components/events/RingCheckInView";
-import FaceCheckInScanner from "@/components/events/FaceCheckInScanner";
 import {
   ArrowLeft, Calendar, MapPin, Users, QrCode, Search,
   UserCheck, XCircle, CheckCircle, Loader2, Clock,
-  Layers, Globe, Award, Video, ScanFace,
+  Layers, Globe, Award,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useEventEnrollments } from "@/hooks/useApi";
@@ -346,10 +344,10 @@ const TeamCheckIn = () => {
           </CardContent>
         </Card>
 
-        {/* QR Scanner */}
+        {/* Check-in Scanner */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center"><QrCode className="mr-2 h-5 w-5" />QR Code Scanner</CardTitle>
+            <CardTitle className="flex items-center"><QrCode className="mr-2 h-5 w-5" />Check-in Scanner</CardTitle>
           </CardHeader>
           <CardContent>
             {isEnded ? (
@@ -359,34 +357,12 @@ const TeamCheckIn = () => {
                 <p className="text-sm text-gray-500">This event has ended. Check-in is no longer available.</p>
               </div>
             ) : (
-              <Tabs defaultValue="ring">
-                <TabsList>
-                  <TabsTrigger value="ring" className="flex items-center gap-1.5">
-                    <Video className="h-3.5 w-3.5" /> Ring Counter
-                  </TabsTrigger>
-                  <TabsTrigger value="face" className="flex items-center gap-1.5">
-                    <ScanFace className="h-3.5 w-3.5" /> Face Check-in
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="ring" className="pt-2">
-                  <RingCheckInView
-                    eventUuid={event.uuid}
-                    ringDeviceId={ringDeviceId}
-                    checkedInBy="team"
-                    onCheckedIn={() => refetch()}
-                  />
-                </TabsContent>
-
-                <TabsContent value="face" className="pt-2">
-                  <FaceCheckInScanner
-                    eventUuid={event.uuid}
-                    ringDeviceId={ringDeviceId}
-                    checkedInBy="team"
-                    onCheckedIn={() => refetch()}
-                  />
-                </TabsContent>
-              </Tabs>
+              <RingCheckInView
+                eventUuid={event.uuid}
+                ringDeviceId={ringDeviceId}
+                checkedInBy="team"
+                onCheckedIn={() => refetch()}
+              />
             )}
           </CardContent>
         </Card>

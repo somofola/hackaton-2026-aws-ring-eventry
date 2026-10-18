@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import QrScanner from "qr-scanner";
 import QrScannerWorkerPath from "qr-scanner/qr-scanner-worker.min.js?url";
@@ -7,16 +8,18 @@ import QrScannerWorkerPath from "qr-scanner/qr-scanner-worker.min.js?url";
 QrScanner.WORKER_PATH = QrScannerWorkerPath;
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Video, VideoOff, CheckCircle, Loader2, QrCode, Webcam } from "lucide-react";
+import { Video, VideoOff, CheckCircle, Loader2, QrCode, Webcam, ScanFace } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   openRingWhep,
   closeRingWhep,
   testRingCapture,
   checkInByQr,
+  checkInByFace,
 } from "@/services/eventService";
 
 type CaptureSource = "ring" | "webcam";
+type CaptureMode = "face" | "qr";
 
 interface RingCheckInViewProps {
   eventUuid: string;
@@ -28,12 +31,21 @@ interface RingCheckInViewProps {
 
 const CAPTURE_POLL_INTERVAL_MS = 1500;
 
+function base64ToBlob(base64: string, mimeType = "image/jpeg"): Blob {
+  const cleaned = base64.includes(",") ? base64.split(",")[1] : base64;
+  const bytes = atob(cleaned);
+  const buffer = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) buffer[i] = bytes.charCodeAt(i);
+  return new Blob([buffer], { type: mimeType });
+}
+
 /**
- * Live "counter kiosk" view for Ring check-in — no physical device required:
+ * Live "counter kiosk" view for check-in — no physical device required:
  * opens a real WHEP session against the Ring Playground's virtual device
  * (same trick as scripts/ring-test-capture.sh) so the camera has footage to
- * serve, then polls the existing test-capture endpoint until a frame
- * decodes a QR code, and checks the attendee in via checkInByQr.
+ * serve, or falls back to the laptop's own webcam. Either source can be
+ * scanned for a QR code or matched via facial recognition — toggled with
+ * the mode buttons below, default facial.
  *
  * This mirrors the real no-kiosk flow (RingArrivalCaptureService polls
  * snapshots on a person_detected webhook) but drives it from a live demo
@@ -50,6 +62,8 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
   const [errorMessage, setErrorMessage] = useState("");
   const [matchedName, setMatchedName] = useState<string | null>(null);
   const [source, setSource] = useState<CaptureSource>("ring");
+  const [mode, setMode] = useState<CaptureMode>("face");
+  const [noMatchStreak, setNoMatchStreak] = useState(0);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
@@ -59,6 +73,7 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
   const stoppedRef = useRef(false);
   const lastErrorRef = useRef<string>("");
   const webcamStreamRef = useRef<MediaStream | null>(null);
+  const processingRef = useRef(false);
 
   const { toast } = useToast();
 
@@ -68,6 +83,7 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
   // buffer continuously warm so test-capture doesn't start 416ing the moment
   // the prior session auto-expires server-side.
   const SESSION_REFRESH_MS = 20_000;
+  const NO_MATCH_THRESHOLD = 8;
 
   const stopPolling = () => {
     if (pollRef.current) {
@@ -110,6 +126,21 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     stopRefreshLoop();
     await closeCurrentSession();
     stopWebcam();
+  };
+
+  /** Grabs the current <video> frame as a JPEG blob, or null if it isn't ready. */
+  const captureVideoFrame = (): Blob | null | Promise<Blob | null> => {
+    const video = videoRef.current;
+    if (!video || video.readyState < video.HAVE_CURRENT_DATA) return null;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.9));
   };
 
   /** Opens one WHEP session + RTCPeerConnection. Returns true on success. */
@@ -187,6 +218,33 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     }, SESSION_REFRESH_MS);
   };
 
+  const handleFaceMatch = async (image: Blob, successDescription: string) => {
+    processingRef.current = true;
+    try {
+      const res = await checkInByFace(eventUuid, image, checkedInBy, source === "ring" ? ringDeviceId : undefined);
+      stopPolling();
+      setNoMatchStreak(0);
+      setMatchedName((res?.user_name as string) || "Attendee");
+      setStatus("matched");
+      onCheckedIn?.(res);
+      toast({ title: "Checked in!", description: successDescription });
+      await teardown();
+    } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
+        // no confident match in this frame — normal, keep polling
+        setNoMatchStreak((n) => n + 1);
+      } else {
+        const message =
+          (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+          "Check-in failed for the matched face";
+        toast({ title: "Check-in failed", description: message, variant: "destructive" });
+      }
+    } finally {
+      processingRef.current = false;
+    }
+  };
+
   const pollForQr = () => {
     pollRef.current = setInterval(async () => {
       if (stoppedRef.current) return;
@@ -212,6 +270,21 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
             // Keep polling — could've been a stale/already-checked-in badge caught mid-frame.
             pollForQr();
           }
+        }
+      } catch {
+        // transient snapshot miss — keep polling silently
+      }
+    }, CAPTURE_POLL_INTERVAL_MS);
+  };
+
+  const pollForFaceRing = () => {
+    pollRef.current = setInterval(async () => {
+      if (stoppedRef.current || processingRef.current) return;
+
+      try {
+        const result = await testRingCapture(ringDeviceId);
+        if (result.success && result.image_base64) {
+          await handleFaceMatch(base64ToBlob(result.image_base64), "Attendee matched via Ring facial recognition.");
         }
       } catch {
         // transient snapshot miss — keep polling silently
@@ -251,6 +324,24 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     }, CAPTURE_POLL_INTERVAL_MS);
   };
 
+  const pollForFaceWebcam = () => {
+    pollRef.current = setInterval(async () => {
+      if (stoppedRef.current || processingRef.current) return;
+
+      const frame = await captureVideoFrame();
+      if (!frame) return;
+
+      await handleFaceMatch(frame, "Attendee matched via webcam facial recognition.");
+    }, CAPTURE_POLL_INTERVAL_MS);
+  };
+
+  useEffect(() => {
+    if (noMatchStreak >= NO_MATCH_THRESHOLD) {
+      // Not fatal — just a sign the camera framing is off. Keep polling, reset the streak.
+      setNoMatchStreak(0);
+    }
+  }, [noMatchStreak]);
+
   /**
    * Dev-playground alternative to the Ring Playground WHEP flow — uses the
    * laptop's own camera so the check-in demo can be run end-to-end without a
@@ -261,6 +352,7 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     setStatus("connecting");
     setErrorMessage("");
     setMatchedName(null);
+    setNoMatchStreak(0);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -273,7 +365,8 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
         await videoRef.current.play();
       }
       setStatus("live");
-      pollForQrWebcam();
+      if (mode === "qr") pollForQrWebcam();
+      else pollForFaceWebcam();
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Could not access webcam — check browser permissions.";
@@ -294,6 +387,7 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     setStatus("connecting");
     setErrorMessage("");
     setMatchedName(null);
+    setNoMatchStreak(0);
     lastErrorRef.current = "";
 
     const opened = await openSession();
@@ -301,7 +395,8 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     if (opened) {
       setStatus("live");
       startRefreshLoop();
-      pollForQr();
+      if (mode === "qr") pollForQr();
+      else pollForFaceRing();
     } else {
       const message = lastErrorRef.current || "Could not start Ring live view — check RING_ACCESS_TOKEN and device ID.";
       setErrorMessage(message);
@@ -323,38 +418,60 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const canChangeSettings = status === "idle" || status === "error";
+
   return (
     <Card className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Video className="h-5 w-5 text-gray-500" />
-          Ring Counter Check-in (live demo)
+          {mode === "face" ? <ScanFace className="h-5 w-5 text-gray-500" /> : <QrCode className="h-5 w-5 text-gray-500" />}
+          Check-in (live demo)
         </h3>
       </div>
       <p className="text-sm text-gray-500">
         {source === "ring"
-          ? "Opens a live view on the Ring Playground device and watches for an attendee's QR code — no physical camera required."
-          : "Uses this laptop's webcam to simulate a Ring device, for demoing check-in without a Ring Playground token or account."}
+          ? `Opens a live view on the Ring Playground device and watches for ${mode === "face" ? "a matching face" : "an attendee's QR code"} — no physical camera required.`
+          : `Uses this laptop's webcam to simulate a Ring device, matching by ${mode === "face" ? "face" : "QR code"} for demoing check-in without a Ring Playground token or account.`}
       </p>
 
-      {(status === "idle" || status === "error") && (
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant={source === "ring" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSource("ring")}
-          >
-            <Video className="mr-2 h-3.5 w-3.5" /> Ring Playground
-          </Button>
-          <Button
-            type="button"
-            variant={source === "webcam" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSource("webcam")}
-          >
-            <Webcam className="mr-2 h-3.5 w-3.5" /> Laptop Webcam (dev playground)
-          </Button>
+      {canChangeSettings && (
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={mode === "face" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setMode("face")}
+            >
+              <ScanFace className="mr-2 h-3.5 w-3.5" /> Facial Recognition
+            </Button>
+            <Button
+              type="button"
+              variant={mode === "qr" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setMode("qr")}
+            >
+              <QrCode className="mr-2 h-3.5 w-3.5" /> QR Code
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={source === "ring" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSource("ring")}
+            >
+              <Video className="mr-2 h-3.5 w-3.5" /> Ring Playground
+            </Button>
+            <Button
+              type="button"
+              variant={source === "webcam" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSource("webcam")}
+            >
+              <Webcam className="mr-2 h-3.5 w-3.5" /> Laptop Webcam (dev playground)
+            </Button>
+          </div>
         </div>
       )}
 
@@ -399,8 +516,17 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
                 </div>
               </div>
               <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center gap-1.5 text-xs text-blue-200">
-                <QrCode className="h-3.5 w-3.5 animate-pulse" />
-                Waiting for QR code...
+                {mode === "face" ? (
+                  <>
+                    <ScanFace className="h-3.5 w-3.5 animate-pulse" />
+                    Scanning for a face...
+                  </>
+                ) : (
+                  <>
+                    <QrCode className="h-3.5 w-3.5 animate-pulse" />
+                    Waiting for QR code...
+                  </>
+                )}
               </div>
             </>
           )}

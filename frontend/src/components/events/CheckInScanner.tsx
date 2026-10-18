@@ -4,13 +4,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RingCheckInView from "@/components/events/RingCheckInView";
-import FaceCheckInScanner from "@/components/events/FaceCheckInScanner";
 import { useEventEnrollments } from "@/hooks/useApi";
 import { fetchMyRingDevices, RingDevice } from "@/services/ringDeviceService";
 import { Event } from "@/types";
-import { Users, UserCheck, QrCode, Video, ScanFace, XCircle } from "lucide-react";
+import { Users, UserCheck, QrCode, XCircle } from "lucide-react";
 
 interface CheckInScannerProps {
   event: Event;
@@ -44,55 +42,36 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({ event, teamMemberName }
           </Badge>
         </div>
 
-        <Tabs defaultValue="ring">
-          <TabsList>
-            <TabsTrigger value="ring" className="flex items-center gap-1.5">
-              <Video className="h-3.5 w-3.5" /> Ring Counter
-            </TabsTrigger>
-            <TabsTrigger value="face" className="flex items-center gap-1.5">
-              <ScanFace className="h-3.5 w-3.5" /> Face Check-in
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="ring" className="space-y-4 pt-2">
-            <div className="max-w-sm mx-auto space-y-1.5">
-              <Label htmlFor="ring_counter_device_id">Ring Device</Label>
-              <select
-                id="ring_counter_device_id"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={ringDeviceId}
-                onChange={(e) => {
-                  setRingDeviceId(e.target.value);
-                  localStorage.setItem("ring_test_device_id", e.target.value);
-                }}
-              >
-                <option value="">Select a device...</option>
-                {ringDevices.map((d) => (
-                  <option key={d.id} value={d.device_id}>
-                    {d.name} {d.location ? `(${d.location})` : ""}
-                  </option>
-                ))}
-              </select>
-              {ringDevices.length === 0 && (
-                <p className="text-xs text-gray-500">No Ring devices assigned or onboarded yet.</p>
-              )}
-            </div>
-            <RingCheckInView
-              eventUuid={event.uuid}
-              ringDeviceId={ringDeviceId}
-              checkedInBy={teamMemberName}
-              onCheckedIn={() => refetch()}
-            />
-          </TabsContent>
-
-          <TabsContent value="face">
-            <FaceCheckInScanner
-              eventUuid={event.uuid}
-              checkedInBy={teamMemberName}
-              onCheckedIn={() => refetch()}
-            />
-          </TabsContent>
-        </Tabs>
+        <div className="space-y-4">
+          <div className="max-w-sm mx-auto space-y-1.5">
+            <Label htmlFor="ring_counter_device_id">Ring Device</Label>
+            <select
+              id="ring_counter_device_id"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={ringDeviceId}
+              onChange={(e) => {
+                setRingDeviceId(e.target.value);
+                localStorage.setItem("ring_test_device_id", e.target.value);
+              }}
+            >
+              <option value="">Select a device...</option>
+              {ringDevices.map((d) => (
+                <option key={d.id} value={d.device_id}>
+                  {d.name} {d.location ? `(${d.location})` : ""}
+                </option>
+              ))}
+            </select>
+            {ringDevices.length === 0 && (
+              <p className="text-xs text-gray-500">No Ring devices assigned or onboarded yet.</p>
+            )}
+          </div>
+          <RingCheckInView
+            eventUuid={event.uuid}
+            ringDeviceId={ringDeviceId}
+            checkedInBy={teamMemberName}
+            onCheckedIn={() => refetch()}
+          />
+        </div>
       </Card>
 
       <Card className="p-6">
