@@ -8,6 +8,8 @@ import QrScannerWorkerPath from "qr-scanner/qr-scanner-worker.min.js?url";
 QrScanner.WORKER_PATH = QrScannerWorkerPath;
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Video, VideoOff, CheckCircle, Loader2, QrCode, Webcam, ScanFace } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -435,43 +437,23 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
       </p>
 
       {canChangeSettings && (
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant={mode === "face" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setMode("face")}
-            >
-              <ScanFace className="mr-2 h-3.5 w-3.5" /> Facial Recognition
-            </Button>
-            <Button
-              type="button"
-              variant={mode === "qr" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setMode("qr")}
-            >
-              <QrCode className="mr-2 h-3.5 w-3.5" /> QR Code
-            </Button>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant={source === "ring" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSource("ring")}
-            >
-              <Video className="mr-2 h-3.5 w-3.5" /> Ring Playground
-            </Button>
-            <Button
-              type="button"
-              variant={source === "webcam" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSource("webcam")}
-            >
-              <Webcam className="mr-2 h-3.5 w-3.5" /> Laptop Webcam (dev playground)
-            </Button>
-          </div>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant={source === "ring" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSource("ring")}
+          >
+            <Video className="mr-2 h-3.5 w-3.5" /> Ring Playground
+          </Button>
+          <Button
+            type="button"
+            variant={source === "webcam" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSource("webcam")}
+          >
+            <Webcam className="mr-2 h-3.5 w-3.5" /> Laptop Webcam (dev playground)
+          </Button>
         </div>
       )}
 
@@ -540,6 +522,20 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
         </div>
 
         {status === "error" && <p className="text-red-500 text-sm mb-2">{errorMessage}</p>}
+
+        {canChangeSettings && (
+          <div className="flex items-center gap-2 mb-3">
+            <QrCode className={`h-4 w-4 ${mode === "qr" ? "text-primary" : "text-gray-400"}`} />
+            <Label htmlFor="capture-mode-switch" className="text-sm text-gray-500">QR</Label>
+            <Switch
+              id="capture-mode-switch"
+              checked={mode === "face"}
+              onCheckedChange={(checked) => setMode(checked ? "face" : "qr")}
+            />
+            <Label htmlFor="capture-mode-switch" className="text-sm text-gray-500">Facial Recognition</Label>
+            <ScanFace className={`h-4 w-4 ${mode === "face" ? "text-primary" : "text-gray-400"}`} />
+          </div>
+        )}
 
         <div className="flex gap-2">
           {status === "idle" || status === "error" || status === "matched" ? (
