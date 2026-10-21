@@ -17,7 +17,7 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Video, Plus, Loader2, Trash2, Unlink, Check, X, KeyRound, Send, Copy } from "lucide-react";
+import { Video, Plus, Loader2, Trash2, Unlink, Check, X, KeyRound, Send, Copy, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   RingDevice,
@@ -27,6 +27,7 @@ import {
   RingOwnerCredentialStatus,
   fetchAllRingDevices,
   createRingDevice,
+  updateRingDevice,
   deleteRingDevice,
   assignRingDeviceToEvent,
   fetchAllRingDeviceRequests,
@@ -60,6 +61,11 @@ const DevicePoolTab = () => {
   const [creating, setCreating] = useState(false);
 
   const [busyId, setBusyId] = useState<number | null>(null);
+
+  const [editDevice, setEditDevice] = useState<RingDevice | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editLocation, setEditLocation] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const [fulfillChoice, setFulfillChoice] = useState<Record<number, string>>({});
   const [busyRequestId, setBusyRequestId] = useState<number | null>(null);
@@ -116,6 +122,29 @@ const DevicePoolTab = () => {
       toast({ title: "Failed", description: message, variant: "destructive" });
     } finally {
       setCreating(false);
+    }
+  };
+
+  const openEdit = (device: RingDevice) => {
+    setEditDevice(device);
+    setEditName(device.name);
+    setEditLocation(device.location || "");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editDevice || !editName) return;
+    setSavingEdit(true);
+    try {
+      await updateRingDevice(editDevice.id, { name: editName, location: editLocation || undefined });
+      toast({ title: "Device updated" });
+      setEditDevice(null);
+      await loadAll();
+    } catch (err) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Could not update device";
+      toast({ title: "Failed", description: message, variant: "destructive" });
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -429,9 +458,14 @@ const DevicePoolTab = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button size="sm" variant="ghost" disabled={busyId === d.id} onClick={() => handleDelete(d)}>
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button size="sm" variant="ghost" disabled={busyId === d.id} onClick={() => openEdit(d)}>
+                          <Pencil className="h-4 w-4 text-gray-500" />
+                        </Button>
+                        <Button size="sm" variant="ghost" disabled={busyId === d.id} onClick={() => handleDelete(d)}>
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -440,6 +474,34 @@ const DevicePoolTab = () => {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!editDevice} onOpenChange={(open) => !open && setEditDevice(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Device</DialogTitle>
+            <DialogDescription>
+              Update the name/location for {editDevice?.device_id}. Device ID can't be changed.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="edit_name">Name</Label>
+              <Input id="edit_name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="edit_location">Location</Label>
+              <Input id="edit_location" value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDevice(null)}>Cancel</Button>
+            <Button onClick={handleSaveEdit} disabled={!editName || savingEdit}>
+              {savingEdit ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
