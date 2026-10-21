@@ -479,7 +479,7 @@ const DevicePoolTab = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Device</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="break-all">
               Update the name/location for {editDevice?.device_id}. Device ID can't be changed.
             </DialogDescription>
           </DialogHeader>
