@@ -168,6 +168,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/events/{event}/check-in', [EventController::class, 'checkIn']);
     Route::post('/events/{event}/check-in/qr', [EventController::class, 'checkInByQr']);
     Route::post('/events/{event}/check-in/face', [EventController::class, 'checkInByFace']);
+    Route::post('/events/{event}/check-in/detect-qr', [EventController::class, 'detectByQr']);
+    Route::post('/events/{event}/check-in/detect-face', [EventController::class, 'detectByFace']);
+    Route::post('/events/{event}/check-in/{enrollment}/confirm', [EventController::class, 'confirmCheckIn']);
     Route::get('/events/{event}/ring-status', [RingWebhookController::class, 'status']);
     Route::get('/events/{event}/analytics', [EventController::class, 'analytics']);
     Route::get('/events/{event}/payments', [EventController::class, 'payments']);

@@ -10,18 +10,30 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Video, VideoOff, CheckCircle, Loader2, QrCode, Webcam, ScanFace } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Video, VideoOff, CheckCircle, Loader2, QrCode, Webcam, ScanFace, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   openRingWhep,
   closeRingWhep,
   testRingCapture,
-  checkInByQr,
-  checkInByFace,
+  detectByQr,
+  detectByFace,
+  confirmCheckIn,
 } from "@/services/eventService";
 
 type CaptureSource = "ring" | "webcam";
 type CaptureMode = "face" | "qr";
+type CheckInMode = "confirm" | "auto";
 
 interface RingCheckInViewProps {
   eventUuid: string;
@@ -65,7 +77,11 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
   const [matchedName, setMatchedName] = useState<string | null>(null);
   const [source, setSource] = useState<CaptureSource>("ring");
   const [mode, setMode] = useState<CaptureMode>("face");
+  const [checkInMode, setCheckInMode] = useState<CheckInMode>("confirm");
   const [noMatchStreak, setNoMatchStreak] = useState(0);
+  const [pendingMatch, setPendingMatch] = useState<{ enrollmentId: number; userName: string; method: CaptureMode } | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const pendingRef = useRef(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
@@ -220,17 +236,15 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     }, SESSION_REFRESH_MS);
   };
 
-  const handleFaceMatch = async (image: Blob, successDescription: string) => {
+  /** Face frame matched a candidate — pause scanning and hand off to the confirm popup instead of checking in directly. */
+  const handleFaceMatch = async (image: Blob) => {
     processingRef.current = true;
     try {
-      const res = await checkInByFace(eventUuid, image, checkedInBy, source === "ring" ? ringDeviceId : undefined);
+      const res = await detectByFace(eventUuid, image);
       stopPolling();
       setNoMatchStreak(0);
-      setMatchedName((res?.user_name as string) || "Attendee");
-      setStatus("matched");
-      onCheckedIn?.(res);
-      toast({ title: "Checked in!", description: successDescription });
-      await teardown();
+      pendingRef.current = true;
+      setPendingMatch({ enrollmentId: res.enrollment.id, userName: res.enrollment.user_name || "Attendee", method: "face" });
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 404) {
@@ -247,23 +261,20 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
       } else {
         const message =
           (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-          "Check-in failed for the matched face";
-        toast({ title: "Check-in failed", description: message, variant: "destructive" });
+          "Face match failed";
+        toast({ title: "Face match failed", description: message, variant: "destructive" });
       }
     } finally {
       processingRef.current = false;
     }
   };
 
-  /** Shared outcome handling for a decoded QR hitting check-in/qr — names the attendee on a 409 instead of a generic failure toast. */
-  const handleQrResult = async (qrCode: string, ringDeviceIdForCall: string | undefined, successDescription: string, retry: () => void) => {
+  /** Decoded QR matched a candidate — pause scanning and hand off to the confirm popup instead of checking in directly. */
+  const handleQrResult = async (qrCode: string, successDescription: string, retry: () => void) => {
     try {
-      const res = await checkInByQr(eventUuid, qrCode, checkedInBy, ringDeviceIdForCall);
-      setMatchedName((res?.user_name as string) || "Attendee");
-      setStatus("matched");
-      onCheckedIn?.(res);
-      toast({ title: "Checked in!", description: successDescription });
-      await teardown();
+      const res = await detectByQr(eventUuid, qrCode);
+      pendingRef.current = true;
+      setPendingMatch({ enrollmentId: res.enrollment.id, userName: res.enrollment.user_name || "Attendee", method: "qr" });
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 409) {
@@ -285,16 +296,67 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     }
   };
 
+  const confirmPendingMatch = async () => {
+    if (!pendingMatch) return;
+    setConfirming(true);
+    try {
+      const res = await confirmCheckIn(
+        eventUuid,
+        pendingMatch.enrollmentId,
+        checkedInBy,
+        source === "ring" ? ringDeviceId : undefined,
+        pendingMatch.method
+      );
+      setMatchedName(pendingMatch.userName);
+      setStatus("matched");
+      onCheckedIn?.(res);
+      toast({ title: "Checked in!", description: `${pendingMatch.userName} checked in via ${pendingMatch.method === "face" ? "facial recognition" : "QR code"}.` });
+      pendingRef.current = false;
+      setPendingMatch(null);
+      await teardown();
+    } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      const message =
+        status === 409
+          ? "Already checked in"
+          : (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Check-in failed";
+      toast({ title: "Check-in failed", description: message, variant: "destructive" });
+      pendingRef.current = false;
+      setPendingMatch(null);
+      resumeScanning();
+    } finally {
+      setConfirming(false);
+    }
+  };
+
+  const cancelPendingMatch = () => {
+    pendingRef.current = false;
+    setPendingMatch(null);
+    resumeScanning();
+  };
+
+  /** Resumes polling after a cancelled/failed confirm, matching whatever source+mode is active. */
+  const resumeScanning = () => {
+    if (stoppedRef.current) return;
+    if (source === "webcam") {
+      if (mode === "qr") pollForQrWebcam();
+      else pollForFaceWebcam();
+    } else {
+      if (mode === "qr") pollForQr();
+      else pollForFaceRing();
+    }
+  };
+
   const pollForQr = () => {
     pollRef.current = setInterval(async () => {
-      if (stoppedRef.current) return;
+      if (stoppedRef.current || pendingRef.current) return;
 
       try {
         const result = await testRingCapture(ringDeviceId);
 
         if (result.success && result.qr_result) {
           stopPolling();
-          await handleQrResult(result.qr_result, ringDeviceId, "Attendee matched via Ring QR capture.", pollForQr);
+          await handleQrResult(result.qr_result, "Attendee matched via Ring QR capture.", pollForQr);
         }
       } catch {
         // transient snapshot miss — keep polling silently
@@ -304,12 +366,12 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
 
   const pollForFaceRing = () => {
     pollRef.current = setInterval(async () => {
-      if (stoppedRef.current || processingRef.current) return;
+      if (stoppedRef.current || processingRef.current || pendingRef.current) return;
 
       try {
         const result = await testRingCapture(ringDeviceId);
         if (result.success && result.image_base64) {
-          await handleFaceMatch(base64ToBlob(result.image_base64), "Attendee matched via Ring facial recognition.");
+          await handleFaceMatch(base64ToBlob(result.image_base64));
         }
       } catch {
         // transient snapshot miss — keep polling silently
@@ -319,7 +381,7 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
 
   const pollForQrWebcam = () => {
     pollRef.current = setInterval(async () => {
-      if (stoppedRef.current || !videoRef.current) return;
+      if (stoppedRef.current || pendingRef.current || !videoRef.current) return;
 
       try {
         const { data: qrCode } = await QrScanner.scanImage(videoRef.current, {
@@ -327,7 +389,7 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
         });
 
         stopPolling();
-        await handleQrResult(qrCode, undefined, "Attendee matched via webcam QR capture.", pollForQrWebcam);
+        await handleQrResult(qrCode, "Attendee matched via webcam QR capture.", pollForQrWebcam);
       } catch {
         // no QR code in this frame — keep polling silently
       }
@@ -336,12 +398,12 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
 
   const pollForFaceWebcam = () => {
     pollRef.current = setInterval(async () => {
-      if (stoppedRef.current || processingRef.current) return;
+      if (stoppedRef.current || processingRef.current || pendingRef.current) return;
 
       const frame = await captureVideoFrame();
       if (!frame) return;
 
-      await handleFaceMatch(frame, "Attendee matched via webcam facial recognition.");
+      await handleFaceMatch(frame);
     }, CAPTURE_POLL_INTERVAL_MS);
   };
 
@@ -417,6 +479,8 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
   };
 
   const stop = async () => {
+    pendingRef.current = false;
+    setPendingMatch(null);
     await teardown();
     setStatus("idle");
   };
@@ -557,6 +621,31 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
           )}
         </div>
       </div>
+
+      <AlertDialog open={!!pendingMatch} onOpenChange={(open) => { if (!open && !confirming) cancelPendingMatch(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <UserCheck className="h-5 w-5 text-primary" />
+              Attendee detected
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingMatch
+                ? `${pendingMatch.userName} matched via ${pendingMatch.method === "face" ? "facial recognition" : "QR code"}. Check them in?`
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={confirming} onClick={cancelPendingMatch}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction disabled={confirming} onClick={confirmPendingMatch}>
+              {confirming ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserCheck className="mr-2 h-4 w-4" />}
+              Check in
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

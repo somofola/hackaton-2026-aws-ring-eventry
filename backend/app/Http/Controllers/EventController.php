@@ -1672,6 +1672,108 @@ class EventController extends Controller
     }
 
     /**
+     * Detect-only match by QR payload — resolves the enrollment but does NOT
+     * check them in. Used by the kiosk confirm popup (RingCheckInView) so
+     * staff can confirm or cancel before the check-in is committed.
+     */
+    public function detectByQr(Request $request, Event $event)
+    {
+        if (!$this->isCheckInStaff($event, $request->user())) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'qr_code' => 'required|string',
+        ]);
+
+        $enrollment = EventEnrollment::where('event_id', $event->id)
+            ->where('qr_code', $validated['qr_code'])
+            ->first();
+
+        if (!$enrollment) {
+            return response()->json(['message' => 'No matching enrollment for this QR code'], 404);
+        }
+
+        if ($enrollment->checked_in) {
+            return response()->json([
+                'message' => 'Already checked in',
+                'enrollment' => $enrollment->load(['user', 'event']),
+            ], 409);
+        }
+
+        return response()->json(['enrollment' => $enrollment->load(['user', 'event'])]);
+    }
+
+    /**
+     * Detect-only face match — resolves the enrollment but does NOT check
+     * them in. Used by the kiosk confirm popup (RingCheckInView) so staff
+     * can confirm or cancel before the check-in is committed.
+     */
+    public function detectByFace(Request $request, Event $event)
+    {
+        if (!$this->isCheckInStaff($event, $request->user())) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'image' => 'required|image|max:5120',
+        ]);
+
+        $imageBytes = file_get_contents($validated['image']->getRealPath());
+
+        $enrollmentId = app(\App\Services\RingFaceService::class)->searchByImage($event->id, $imageBytes);
+
+        if (!$enrollmentId) {
+            return response()->json(['message' => 'No confident face match found'], 404);
+        }
+
+        $enrollment = EventEnrollment::where('event_id', $event->id)->find($enrollmentId);
+
+        if (!$enrollment) {
+            return response()->json(['message' => 'Matched enrollment no longer exists'], 404);
+        }
+
+        if ($enrollment->checked_in) {
+            return response()->json([
+                'message' => 'Already checked in',
+                'enrollment' => $enrollment->load(['user', 'event']),
+            ], 409);
+        }
+
+        return response()->json(['enrollment' => $enrollment->load(['user', 'event'])]);
+    }
+
+    /**
+     * Commits a check-in for an enrollment already resolved by detectByQr/
+     * detectByFace — called when staff confirms the popup.
+     */
+    public function confirmCheckIn(Request $request, Event $event, EventEnrollment $enrollment)
+    {
+        if (!$this->isCheckInStaff($event, $request->user())) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if ((int) $enrollment->event_id !== (int) $event->id) {
+            return response()->json(['message' => 'Enrollment does not belong to this event'], 400);
+        }
+
+        $validated = $request->validate([
+            'checked_in_by' => 'required|string',
+            'ring_device_id' => 'nullable|string',
+            'method' => 'nullable|string|in:qr,face',
+        ]);
+
+        if ($enrollment->checked_in) {
+            return response()->json([
+                'message' => 'Already checked in',
+                'enrollment' => $enrollment->load(['user', 'event']),
+            ], 409);
+        }
+
+        return $this->finalizeCheckIn($enrollment, $validated['checked_in_by'], $validated['ring_device_id'] ?? null, $validated['method'] ?? 'qr');
+    }
+
+    /**
      * Check in by raw QR payload (kiosk scan) instead of a known enrollment_id.
      * QR payload format set at enrollment time: "e:{event uuid}:u:{user_id}:{timestamp}".
      */

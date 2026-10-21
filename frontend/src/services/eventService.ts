@@ -81,6 +81,39 @@ export const checkInByFace = async (eventUuid: string, image: Blob, checkedInBy:
   return data;
 };
 
+/** Detect-only QR match — resolves the enrollment without checking them in. */
+export const detectByQr = async (eventUuid: string, qrCode: string) => {
+  const { data } = await api.post(`/events/${eventUuid}/check-in/detect-qr`, { qr_code: qrCode });
+  return data as { enrollment: { id: number; user_name: string } };
+};
+
+/** Detect-only face match — resolves the enrollment without checking them in. */
+export const detectByFace = async (eventUuid: string, image: Blob) => {
+  const formData = new FormData();
+  formData.append("image", image, "frame.jpg");
+
+  const { data } = await api.post(`/events/${eventUuid}/check-in/detect-face`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data as { enrollment: { id: number; user_name: string } };
+};
+
+/** Commits a check-in for an enrollment already resolved by detectByQr/detectByFace. */
+export const confirmCheckIn = async (
+  eventUuid: string,
+  enrollmentId: number,
+  checkedInBy: string,
+  ringDeviceId?: string,
+  method?: "qr" | "face"
+) => {
+  const { data } = await api.post(`/events/${eventUuid}/check-in/${enrollmentId}/confirm`, {
+    checked_in_by: checkedInBy,
+    ring_device_id: ringDeviceId || undefined,
+    method,
+  });
+  return data;
+};
+
 export const testRingChime = async (ringDeviceId: string): Promise<{ success: boolean; reason: RingChimeResult["reason"] }> => {
   const { data } = await api.post(`/ring/devices/${ringDeviceId}/test-chime`);
   return data;
