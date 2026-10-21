@@ -236,15 +236,20 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     }, SESSION_REFRESH_MS);
   };
 
-  /** Face frame matched a candidate — pause scanning and hand off to the confirm popup instead of checking in directly. */
+  /** Face frame matched a candidate — auto-commits in "auto" mode, otherwise hands off to the confirm popup. */
   const handleFaceMatch = async (image: Blob) => {
     processingRef.current = true;
     try {
       const res = await detectByFace(eventUuid, image);
       stopPolling();
       setNoMatchStreak(0);
-      pendingRef.current = true;
-      setPendingMatch({ enrollmentId: res.enrollment.id, userName: res.enrollment.user_name || "Attendee", method: "face" });
+      const userName = res.enrollment.user_name || "Attendee";
+      if (checkInMode === "auto") {
+        await commitMatch(res.enrollment.id, userName, "face");
+      } else {
+        pendingRef.current = true;
+        setPendingMatch({ enrollmentId: res.enrollment.id, userName, method: "face" });
+      }
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 404) {
@@ -269,12 +274,17 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     }
   };
 
-  /** Decoded QR matched a candidate — pause scanning and hand off to the confirm popup instead of checking in directly. */
+  /** Decoded QR matched a candidate — auto-commits in "auto" mode, otherwise hands off to the confirm popup. */
   const handleQrResult = async (qrCode: string, successDescription: string, retry: () => void) => {
     try {
       const res = await detectByQr(eventUuid, qrCode);
-      pendingRef.current = true;
-      setPendingMatch({ enrollmentId: res.enrollment.id, userName: res.enrollment.user_name || "Attendee", method: "qr" });
+      const userName = res.enrollment.user_name || "Attendee";
+      if (checkInMode === "auto") {
+        await commitMatch(res.enrollment.id, userName, "qr");
+      } else {
+        pendingRef.current = true;
+        setPendingMatch({ enrollmentId: res.enrollment.id, userName, method: "qr" });
+      }
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 409) {
@@ -296,24 +306,36 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
     }
   };
 
-  const confirmPendingMatch = async () => {
-    if (!pendingMatch) return;
-    setConfirming(true);
+  /**
+   * Commits a check-in for a resolved enrollment. In "auto" mode (unattended
+   * booth) the feed stays live and resumes scanning for the next attendee
+   * after a brief "matched" flash; in "confirm" mode (staff-operated) the
+   * feed stops so staff can review before starting the next check-in.
+   */
+  const commitMatch = async (enrollmentId: number, userName: string, method: CaptureMode) => {
     try {
       const res = await confirmCheckIn(
         eventUuid,
-        pendingMatch.enrollmentId,
+        enrollmentId,
         checkedInBy,
         source === "ring" ? ringDeviceId : undefined,
-        pendingMatch.method
+        method
       );
-      setMatchedName(pendingMatch.userName);
+      setMatchedName(userName);
       setStatus("matched");
       onCheckedIn?.(res);
-      toast({ title: "Checked in!", description: `${pendingMatch.userName} checked in via ${pendingMatch.method === "face" ? "facial recognition" : "QR code"}.` });
-      pendingRef.current = false;
-      setPendingMatch(null);
-      await teardown();
+      toast({ title: "Checked in!", description: `${userName} checked in via ${method === "face" ? "facial recognition" : "QR code"}.` });
+
+      if (checkInMode === "auto" && !stoppedRef.current) {
+        setTimeout(() => {
+          if (stoppedRef.current) return;
+          setStatus("live");
+          setMatchedName(null);
+          resumeScanning();
+        }, 2000);
+      } else {
+        await teardown();
+      }
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       const message =
@@ -321,9 +343,18 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
           ? "Already checked in"
           : (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Check-in failed";
       toast({ title: "Check-in failed", description: message, variant: "destructive" });
-      pendingRef.current = false;
-      setPendingMatch(null);
       resumeScanning();
+    }
+  };
+
+  const confirmPendingMatch = async () => {
+    if (!pendingMatch) return;
+    setConfirming(true);
+    pendingRef.current = false;
+    const { enrollmentId, userName, method } = pendingMatch;
+    setPendingMatch(null);
+    try {
+      await commitMatch(enrollmentId, userName, method);
     } finally {
       setConfirming(false);
     }
@@ -606,6 +637,18 @@ const RingCheckInView: React.FC<RingCheckInViewProps> = ({
             />
             <Label htmlFor="capture-mode-switch" className="text-sm text-gray-500">Facial Recognition</Label>
             <ScanFace className={`h-4 w-4 ${mode === "face" ? "text-primary" : "text-gray-400"}`} />
+          </div>
+        )}
+
+        {canChangeSettings && (
+          <div className="flex items-center gap-2 mb-3">
+            <Label htmlFor="checkin-confirm-switch" className="text-sm text-gray-500">Confirm popup</Label>
+            <Switch
+              id="checkin-confirm-switch"
+              checked={checkInMode === "auto"}
+              onCheckedChange={(checked) => setCheckInMode(checked ? "auto" : "confirm")}
+            />
+            <Label htmlFor="checkin-confirm-switch" className="text-sm text-gray-500">Auto check-in (unattended booth)</Label>
           </div>
         )}
 
